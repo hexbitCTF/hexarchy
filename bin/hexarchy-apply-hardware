@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# hexarchy:summary=Apply Hexarchy hardware-specific packages and system configuration
+# hexarchy:group=apply
+# hexarchy:requires-sudo=true
+# hexarchy:examples=hexarchy apply hardware --install-user dhh
+# hexarchy:hidden=true
+
+set -euo pipefail
+
+usage() {
+  cat <<USAGE
+Usage: hexarchy apply hardware --install-user USER
+       hexarchy apply hardware --defer-provisioning
+
+Runs idempotent hardware detection/setup for the installed machine. This is
+called by hexarchy-apply-system during ISO finalization and can be rerun later
+for diagnostics or after hardware/package updates.
+
+--defer-provisioning runs without an install user (deferred-provisioning installs create the user at
+first boot); group grants are recorded in /var/lib/hexarchy/provisioning/groups.
+USAGE
+}
+
+install_user="${HEXARCHY_INSTALL_USER:-}"
+defer_provisioning=0
+while (($#)); do
+  case "$1" in
+    --install-user)
+      install_user="${2:-}"
+      shift 2
+      ;;
+    --defer-provisioning)
+      defer_provisioning=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+if (( EUID != 0 )); then
+  echo "Error: hexarchy-apply-hardware must run as root" >&2
+  exit 1
+fi
+
+if (( defer_provisioning )); then
+  install_user=""
+else
+  if [[ -z $install_user || $install_user == "root" ]]; then
+    echo "Error: --install-user must name the target non-root user" >&2
+    exit 1
+  fi
+
+  if ! getent passwd "$install_user" >/dev/null; then
+    echo "Error: user '$install_user' does not exist" >&2
+    exit 1
+  fi
+fi
+
+export HEXARCHY_INSTALL_USER="$install_user"
+export HEXARCHY_PATH="${HEXARCHY_PATH:-/usr/share/hexarchy}"
+export HEXARCHY_INSTALL="${HEXARCHY_INSTALL:-$HEXARCHY_PATH/install}"
+export HEXARCHY_INSTALL_LOG_FILE="${HEXARCHY_INSTALL_LOG_FILE:-/var/log/hexarchy-install.log}"
+export PATH="$HEXARCHY_PATH/bin:$PATH"
+
+source "$HEXARCHY_INSTALL/helpers/logging.sh"
+source "$HEXARCHY_INSTALL/hardware/all.sh"

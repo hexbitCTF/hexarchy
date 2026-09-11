@@ -93,7 +93,6 @@ Item {
     spacing: Style.spacing.labelGap
 
     Text {
-      textFormat: Text.PlainText
       visible: root.showLabel && root.label !== ""
       text: root.label
       color: Qt.darker(root.foreground, 1.4)
@@ -133,7 +132,6 @@ Item {
       }
 
       Text {
-        textFormat: Text.PlainText
         anchors.left: parent.left
         anchors.right: chevron.left
         anchors.verticalCenter: parent.verticalCenter
@@ -248,7 +246,6 @@ Item {
             height: popup.height - searchHeader.height - Style.spacing.xxs - 1
 
             Text {
-              textFormat: Text.PlainText
               anchors.centerIn: parent
               visible: resultList.count === 0
               text: root.emptyText
@@ -316,7 +313,6 @@ Item {
                   spacing: Style.spacing.xxs
 
                   Text {
-                    textFormat: Text.PlainText
                     text: root.optionLabel(modelData)
                     color: index === resultList.currentIndex ? Style.hoverStateColor(root.foreground, root.accent) : root.foreground
                     font.family: root.fontFamily
@@ -325,7 +321,6 @@ Item {
                     width: parent.width
                   }
                   Text {
-                    textFormat: Text.PlainText
                     visible: text !== ""
                     text: root.optionDescription(modelData)
                     color: Qt.darker(root.foreground, 1.5)

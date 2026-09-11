@@ -201,10 +201,10 @@ SH
 
 chmod +x "$stub_bin/stat"
 
-# omarchy-migrate records this migration complete on any zero exit, so the
+# hexarchy-migrate records this migration complete on any zero exit, so the
 # states it cannot repair have to reach the user somewhere that outlives the
 # update terminal's scrollback.
-cat >"$stub_bin/omarchy-notification-send" <<'SH'
+cat >"$stub_bin/hexarchy-notification-send" <<'SH'
 #!/bin/bash
 
 printf 'notify' >>"$TEST_NOTIFICATIONS"
@@ -213,7 +213,7 @@ printf '\n' >>"$TEST_NOTIFICATIONS"
 exit "${TEST_NOTIFY_STATUS:-0}"
 SH
 
-chmod +x "$stub_bin/omarchy-notification-send"
+chmod +x "$stub_bin/hexarchy-notification-send"
 
 run_migration() {
   local fail_install="${1:-0}"
@@ -478,7 +478,7 @@ run_migration
 [[ -s $notifications ]] || fail "a non-regular authfile is raised the same way"
 pass "migration reports a non-regular authfile and repairs nothing"
 
-# omarchy-migrate writes this migration's completion marker on any zero exit, so
+# hexarchy-migrate writes this migration's completion marker on any zero exit, so
 # a machine it cannot repair gets one shot at telling the user. The states above
 # are exactly the ones where the authfile may already be under someone else's
 # control, and a line in the update terminal scrolls past.

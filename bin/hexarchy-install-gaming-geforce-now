@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# hexarchy:summary=Install and launch Geforce Now.
+# hexarchy:group=install
+# hexarchy:name=gaming geforce-now
+
+set -e
+
+echo "Installing GeForce NOW..."
+hexarchy-pkg-add flatpak
+cd /tmp
+
+# Download and run GeForce NOW
+curl -LO https://international.download.nvidia.com/GFNLinux/GeForceNOWSetup.bin
+chmod +x GeForceNOWSetup.bin
+./GeForceNOWSetup.bin
+
+# Ensure a separate browser process not started by GFN is available.
+# If not, it seems like GFN has a tendency to hang on login.
+setsid hexarchy-launch-browser

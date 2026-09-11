@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# hexarchy:summary=Toggle notification do-not-disturb mode
+
+state=$(hexarchy-shell notifications toggleDnd 2>/dev/null || echo "")
+hexarchy-shell -q hexarchy.indicators refresh

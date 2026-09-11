@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# hexarchy:summary=Open Voxtype AI model setup
+
+set -e
+
+hexarchy-launch-floating-terminal-with-presentation "voxtype setup model"
+hexarchy-restart-shell

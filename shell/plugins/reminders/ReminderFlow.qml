@@ -8,7 +8,7 @@ import "ReminderFlowModel.js" as ReminderFlowModel
 Item {
   id: root
 
-  property string omarchyPath: Quickshell.env("OMARCHY_PATH")
+  property string hexarchyPath: Quickshell.env("HEXARCHY_PATH")
   property var shell: null
   property var manifest: null
 
@@ -50,7 +50,7 @@ Item {
   function dismiss() {
     root.opened = false
     if (root.shell && typeof root.shell.hide === "function")
-      root.shell.hide((root.manifest && root.manifest.id) || "omarchy.reminders")
+      root.shell.hide((root.manifest && root.manifest.id) || "hexarchy.reminders")
   }
 
   function toggle() {
@@ -74,7 +74,7 @@ Item {
       }
 
       if (!nextMinutes) {
-        Quickshell.execDetached([root.omarchyPath + "/bin/omarchy-notification-send", "Invalid reminder", "Enter the number of minutes"])
+        Quickshell.execDetached([root.hexarchyPath + "/bin/hexarchy-notification-send", "Invalid reminder", "Enter the number of minutes"])
         return
       }
 
@@ -86,7 +86,7 @@ Item {
     }
 
     if (root.step === "message") {
-      var args = [root.omarchyPath + "/bin/omarchy-reminder"].concat(ReminderFlowModel.reminderArgs(root.minutes, selection))
+      var args = [root.hexarchyPath + "/bin/hexarchy-reminder"].concat(ReminderFlowModel.reminderArgs(root.minutes, selection))
       root.dismiss()
       Quickshell.execDetached(args)
     }
@@ -97,7 +97,7 @@ Item {
     visible: root.opened
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
-    WlrLayershell.namespace: "omarchy-reminders"
+    WlrLayershell.namespace: "hexarchy-reminders"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore
@@ -156,7 +156,6 @@ Item {
         anchors.leftMargin: card.contentLeftInset
 
         Text {
-          textFormat: Text.PlainText
           anchors.left: parent.left
           anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter

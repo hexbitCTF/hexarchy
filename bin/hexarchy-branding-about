@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# hexarchy:summary=Edit, set, or reset About branding
+# hexarchy:group=branding
+# hexarchy:name=about
+# hexarchy:args=<image|text|reset>
+# hexarchy:examples=hexarchy branding about image | hexarchy branding about text | hexarchy branding about reset
+
+set -euo pipefail
+
+case "${1:-}" in
+image)
+  image=$(hexarchy-file-select --title "Pick PNG or SVG for About" --extensions "png svg")
+  if hexarchy-transcode-ascii "$image" ~/.config/hexarchy/branding/about.txt --width 54 --height 26; then
+    hexarchy-launch-about >/dev/null 2>&1
+  fi
+  ;;
+text)
+  hexarchy-launch-editor ~/.config/hexarchy/branding/about.txt >/dev/null 2>&1 && hexarchy-launch-about >/dev/null 2>&1
+  ;;
+reset)
+  cp "$HEXARCHY_PATH/icon.txt" ~/.config/hexarchy/branding/about.txt && hexarchy-launch-about >/dev/null 2>&1
+  ;;
+*)
+  echo "Usage: hexarchy-branding-about <image|text|reset>" >&2
+  exit 1
+  ;;
+esac

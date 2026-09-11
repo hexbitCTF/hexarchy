@@ -1,0 +1,114 @@
+#!/bin/bash
+# systemctl shim for Hexarchy on Artix/runit.
+#
+# Migration scripts and installed utilities still call systemctl (from the
+# Arch/systemd lineage). There is no systemctl on this system. This shim maps
+# the handful of used verbs to their runit equivalents and no-ops the rest so
+# hexarchy-migrate can run cleanly.
+#
+# - systemctl --user   -> runit user svc dir (XDG_RUNTIME_DIR/service) or no-op
+# - systemctl <sys>    -> map known units to /run/runit/service, else no-op
+
+RUNIT_SV=/run/runit/service
+
+is_user_call() {
+  for a in "$@"; do [[ $a == "--user" ]] && return 0; done
+  return 1
+}
+
+arg_after() {
+  local needle=$1; shift
+  local prev=""
+  for a in "$@"; do
+    if [[ $prev == "$needle" ]]; then
+      printf '%s\n' "$a"
+      return 0
+    fi
+    prev=$a
+  done
+  return 1
+}
+
+unit_from_args() {
+  for a in "$@"; do
+    [[ $a == -* ]] && continue
+    case "$a" in
+      *.service|*.timer|*.path|*.target)
+        printf '%s\n' "$a"
+        return 0
+        ;;
+    esac
+  done
+  return 1
+}
+
+unit_to_svc() {
+  local unit=$1
+  case "$unit" in
+    NetworkManager.service) echo NetworkManager; return ;;
+    wpa_supplicant.service) echo NetworkManager; return ;;
+  esac
+  unit=${unit%.service}
+  unit=${unit%.timer}
+  unit=${unit%.path}
+  unit=${unit%.target}
+  unit=${unit%/}
+  echo "$unit"
+}
+
+verb=""
+for a in "$@"; do
+  [[ $a == -* ]] && continue
+  verb="$a"
+  break
+done
+
+if is_user_call "$@"; then
+  case "$verb" in
+    daemon-reload|reset-failed|try-restart) exit 0 ;;
+    show-environment|show) exit 0 ;;
+    is-enabled) echo "enabled"; exit 0 ;;
+    is-active)  exit 1 ;;
+    enable|disable|start|stop|restart)
+      unit=$(unit_from_args "$@") || exit 0
+      svc=$(unit_to_svc "$unit")
+      udir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/service"
+      case "$verb" in
+        start)   [[ -d $udir/$svc ]] && sv start "$svc" >/dev/null 2>&1 ;;
+        stop)    [[ -d $udir/$svc ]] && sv stop "$svc" >/dev/null 2>&1 ;;
+        restart|enable) [[ -d $udir/$svc ]] && sv restart "$svc" >/dev/null 2>&1 ;;
+        disable) : ;;
+      esac
+      exit 0
+      ;;
+    *) exit 0 ;;
+  esac
+fi
+
+# System-level calls.
+case "$verb" in
+  daemon-reload|reset-failed|mask|unmask) exit 0 ;;
+  is-enabled|is-active)
+    unit=$(unit_from_args "$@") || exit 1
+    svc=$(unit_to_svc "$unit")
+    if [[ -d $RUNIT_SV/$svc ]]; then
+      echo "enabled"
+      exit 0
+    fi
+    exit 1
+    ;;
+  enable|disable|start|stop|restart|try-restart|reload)
+    unit=$(unit_from_args "$@") || exit 0
+    svc=$(unit_to_svc "$unit")
+    case "$svc" in
+      systemd-oomd|dev-zram0|zram*|plocate-updatedb|tiny-dfr|systemd-logind|wpa_supplicant)
+        exit 0 ;;
+      *)
+        if [[ -d $RUNIT_SV/$svc && ( $verb == restart || $verb == reload || $verb == start ) ]]; then
+          sv "$verb" "$svc" >/dev/null 2>&1
+        fi
+        exit 0 ;;
+    esac
+    ;;
+  *) exit 0 ;;
+esac

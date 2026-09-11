@@ -69,7 +69,6 @@ Item {
 
         Text {
           id: messageText
-          textFormat: Text.PlainText
           anchors.left: parent.left
           anchors.right: parent.right
           anchors.top: parent.top
@@ -106,7 +105,6 @@ Item {
               radius: 0
 
               Text {
-                textFormat: Text.PlainText
                 anchors.centerIn: parent
                 text: modelData
                 color: destructive ? (selected ? Color.urgent : root.foreground) : (selected ? root.selectedText : root.foreground)

@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-# A theme installed with `omarchy theme install` is a stranger's git repo, so
-# omarchy-theme-set drops the files that would run its code -- Lua, terminal
+# A theme installed with `hexarchy theme install` is a stranger's git repo, so
+# hexarchy-theme-set drops the files that would run its code -- Lua, terminal
 # configs, vscode.json -- and keeps the colour. A theme the user wrote themselves
 # is not filtered at all.
 
@@ -13,17 +13,17 @@ test_tmp=$(mktemp -d)
 trap 'rm -rf "$test_tmp"' EXIT
 
 home="$test_tmp/home"
-state="$home/.local/state/omarchy/current"
-themes="$home/.config/omarchy/themes"
+state="$home/.local/state/hexarchy/current"
+themes="$home/.config/hexarchy/themes"
 mkdir -p "$state" "$themes"
 
-marker="omarchy-theme-staging-marker"
+marker="hexarchy-theme-staging-marker"
 
 set_theme() {
-  HOME="$home" OMARCHY_PATH="$ROOT" PATH="$ROOT/bin:$PATH" \
-    OMARCHY_THEME_HEADLESS=1 OMARCHY_THEME_SKIP_BACKGROUND=1 \
+  HOME="$home" HEXARCHY_PATH="$ROOT" PATH="$ROOT/bin:$PATH" \
+    HEXARCHY_THEME_HEADLESS=1 HEXARCHY_THEME_SKIP_BACKGROUND=1 \
     XDG_RUNTIME_DIR="$test_tmp" \
-    bash "$ROOT/bin/omarchy-theme-set" "$1" 2>"$test_tmp/stderr" || return $?
+    bash "$ROOT/bin/hexarchy-theme-set" "$1" 2>"$test_tmp/stderr" || return $?
 }
 
 staged() {
@@ -86,7 +86,7 @@ printf '%s\n' "$marker" >"$hostile/backgrounds/payload.sh"
 printf '# notes\n' >"$hostile/README.md"
 ln -s /etc/hostname "$hostile/unlock.png"
 
-set_theme hostile || fail "omarchy-theme-set applies a theme that ships disallowed files"
+set_theme hostile || fail "hexarchy-theme-set applies a theme that ships disallowed files"
 
 assert_staged colors.toml "the theme's colors.toml is staged"
 grep -q '#7aa2f7' "$(staged colors.toml)" || fail "the staged colors.toml is the theme's palette"
@@ -103,19 +103,19 @@ assert_staged btop.theme "the theme's btop colours are staged"
 grep -q 'main_bg' "$(staged btop.theme)" || fail "the staged btop.theme is the theme's"
 assert_not_staged .git "the clone's own git directory is never staged"
 
-# These run code, so the theme's versions must lose to Omarchy's generated ones
+# These run code, so the theme's versions must lose to Hexarchy's generated ones
 # rather than merely be absent.
 for generated in hyprland.lua neovim.lua gum_env.lua kitty.conf alacritty.toml foot.ini ghostty.conf; do
-  assert_staged "$generated" "$generated is generated from Omarchy's template"
+  assert_staged "$generated" "$generated is generated from Hexarchy's template"
   assert_no_marker "$generated" "an installed theme cannot supply $generated"
 done
 
-# Colour is kept, including a file Omarchy would otherwise have generated.
+# Colour is kept, including a file Hexarchy would otherwise have generated.
 assert_staged shell.toml "shell.toml is staged"
 grep -q '000000' "$(staged shell.toml)" || fail "an installed theme's shell.toml colours are kept"
 
-grep -q 'hyprland.lua' "$test_tmp/stderr" || fail "omarchy-theme-set names the files it ignored"
-! grep -q 'README.md' "$test_tmp/stderr" || fail "omarchy-theme-set does not report a theme's documentation"
+grep -q 'hyprland.lua' "$test_tmp/stderr" || fail "hexarchy-theme-set names the files it ignored"
+! grep -q 'README.md' "$test_tmp/stderr" || fail "hexarchy-theme-set does not report a theme's documentation"
 
 pass "an installed theme keeps its colour and loses everything that runs code"
 
@@ -126,7 +126,7 @@ mkdir -p "$linked/.git"
 write_colors "$linked/colors.toml"
 ln -s /etc/hostname "$linked/icons.theme"
 
-set_theme linked || fail "omarchy-theme-set applies a theme whose icons.theme is a symlink"
+set_theme linked || fail "hexarchy-theme-set applies a theme whose icons.theme is a symlink"
 assert_not_staged icons.theme "a symlinked icons.theme is not followed"
 
 pass "a symlinked icon set name is refused like any other symlink"
@@ -154,7 +154,7 @@ cyan = "#00ffff"
 white = "#a0b0c0"
 TOML
 
-set_theme legacy || fail "omarchy-theme-set applies a theme that only ships alacritty.toml"
+set_theme legacy || fail "hexarchy-theme-set applies a theme that only ships alacritty.toml"
 assert_staged colors.toml "a legacy theme's palette is recovered from its alacritty.toml"
 grep -q '#102030' "$(staged colors.toml)" || fail "the recovered palette is the theme's"
 assert_no_marker alacritty.toml "a legacy theme's alacritty.toml is not staged"
@@ -167,7 +167,7 @@ write_colors "$themes/tokyo-night/colors.toml"
 sed -i 's/#7aa2f7/#abcdef/' "$themes/tokyo-night/colors.toml"
 printf 'os.execute("%s")\n' "$marker" >"$themes/tokyo-night/hyprland.lua"
 
-set_theme "Tokyo Night" || fail "omarchy-theme-set applies a stock theme with a user overlay"
+set_theme "Tokyo Night" || fail "hexarchy-theme-set applies a stock theme with a user overlay"
 grep -q '#abcdef' "$(staged colors.toml)" || fail "a user overlay still replaces the stock palette"
 assert_no_marker hyprland.lua "a user overlay cannot add Lua to a stock theme"
 
@@ -180,7 +180,7 @@ write_colors "$mine/colors.toml"
 printf 'os.execute("%s")\n' "$marker" >"$mine/hyprland.lua"
 printf '{"name":"Mine","extension":"pub.ext"}\n' >"$mine/vscode.json"
 
-set_theme mine || fail "omarchy-theme-set applies a theme the user wrote"
+set_theme mine || fail "hexarchy-theme-set applies a theme the user wrote"
 grep -q "$marker" "$(staged hyprland.lua)" || fail "a theme the user wrote keeps its own hyprland.lua"
 assert_staged vscode.json "a theme the user wrote keeps every file it ships"
 [[ ! -s $test_tmp/stderr ]] || fail "a theme the user wrote reports nothing ignored" "$(cat "$test_tmp/stderr")"
@@ -189,7 +189,7 @@ pass "a theme the user wrote is not held to the installed-theme list"
 
 # A working copy symlinked into the themes folder is the user's own too.
 ln -s "$mine" "$themes/mine-link"
-set_theme mine-link || fail "omarchy-theme-set applies a symlinked working copy"
+set_theme mine-link || fail "hexarchy-theme-set applies a symlinked working copy"
 grep -q "$marker" "$(staged hyprland.lua)" || fail "a symlinked working copy is the user's own"
 
 pass "a symlinked working copy is the user's own"
@@ -197,7 +197,7 @@ pass "a symlinked working copy is the user's own"
 # The name is joined into paths that get removed and copied into.
 for name in .. . "../../evil"; do
   if set_theme "$name" >/dev/null; then
-    fail "omarchy-theme-set rejects the theme name '$name'"
+    fail "hexarchy-theme-set rejects the theme name '$name'"
   fi
 done
 
@@ -207,7 +207,7 @@ pass "a theme name cannot climb out of the theme directories"
 # generates. Every generated theme file is either denied to an installed theme or
 # recorded here as carrying colour, so a new template fails until it is placed.
 denied=(alacritty.toml foot.ini ghostty.conf kitty.conf gum_env.lua hyprland.lua neovim.lua vscode.json)
-colour_only=(btop.theme chromium.theme claude.json helix.toml hermes.yaml hyprland-preview-share-picker.css keyboard.rgb obsidian.css pi.json shell.toml t3code.json vscode-theme.json)
+colour_only=(btop.theme chromium.theme claude.json helix.toml hyprland-preview-share-picker.css keyboard.rgb obsidian.css pi.json shell.toml vscode-theme.json)
 
 for tpl in "$ROOT"/default/themed/*.tpl; do
   generated=$(basename "$tpl" .tpl)
@@ -225,4 +225,4 @@ for tpl in "$ROOT"/default/themed/*.tpl; do
       "$generated has a template but is in neither list in $(basename "$0"); decide whether an installed theme may ship it"
 done
 
-pass "every file Omarchy generates is classified as code or colour"
+pass "every file Hexarchy generates is classified as code or colour"

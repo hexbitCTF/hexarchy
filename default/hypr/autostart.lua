@@ -1,14 +1,18 @@
 hl.on("hyprland.start", function()
-  -- Slow app launch fix -- set systemd vars before starting session services.
-  hl.exec_cmd("systemctl --user import-environment $(env | cut -d'=' -f 1)")
+  -- Set environment for session services (elogind/runit)
   hl.exec_cmd("dbus-update-activation-environment --systemd --all")
 
-  hl.exec_cmd("omarchy-launch-shell")
-  hl.exec_cmd("omarchy-provision-first-run")
-  hl.exec_cmd("omarchy-powerprofiles-init")
-  hl.exec_cmd(o.launch("omarchy-hyprland-monitor-watch"))
+  -- Start PipeWire audio stack (runit has no user services, so launch directly)
+  hl.exec_cmd("pipewire &")
+  hl.exec_cmd("sleep 0.5 && wireplumber &")
+  hl.exec_cmd("sleep 1 && pipewire-pulse &")
+
+  hl.exec_cmd("hexarchy-launch-shell")
+  hl.exec_cmd("hexarchy-provision-first-run")
+  hl.exec_cmd("hexarchy-powerprofiles-init")
+  hl.exec_cmd(o.launch("hexarchy-hyprland-monitor-watch"))
   hl.exec_cmd(o.launch("udiskie --automount --no-notify --no-tray"))
 
   -- Run post-boot hooks after startup config has loaded.
-  hl.exec_cmd("sleep 2 && omarchy-hook post-boot")
+  hl.exec_cmd("sleep 2 && hexarchy-hook post-boot")
 end)

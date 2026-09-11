@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# hexarchy:summary=Overwrite the user config for the Plymouth drive decryption and boot sequence with the Hexarchy default and rebuild it.
+# hexarchy:requires-sudo=true
+
+sudo cp -r "$HEXARCHY_PATH/default/plymouth/." /usr/share/plymouth/themes/hexarchy/
+sudo plymouth-set-default-theme hexarchy
+
+if hexarchy-cmd-present limine-mkinitcpio; then
+  sudo limine-mkinitcpio
+else
+  sudo mkinitcpio -P
+fi

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# hexarchy:summary=Remove the xpadneo Xbox controller driver and undo its module/blacklist config.
+# hexarchy:group=remove
+# hexarchy:name=gaming xbox-controllers
+# hexarchy:requires-sudo=true
+
+set -e
+
+hexarchy-pkg-drop xpadneo-dkms
+
+sudo rm -f /etc/modprobe.d/blacklist-xpad.conf /etc/modules-load.d/xpadneo.conf
+
+echo ""
+echo "Xbox controller support removed. Reboot to fully unload xpadneo and restore xpad."

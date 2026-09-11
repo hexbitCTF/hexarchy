@@ -1,0 +1,20 @@
+#!/bin/bash
+# xdg-terminal-exec shim for systems without xdg-utils 1.2.2+
+
+# With --list, output the preferred terminals
+if [[ "$1" == "--list" ]]; then
+  echo "kitty.desktop"
+  echo "foot.desktop"
+  exit 0
+fi
+
+# Find kitty, then fall back through others
+for term in kitty foot; do
+  if command -v "$term" &>/dev/null; then
+    exec "$term" "$@"
+  fi
+done
+
+# Last resort: any x-scheme-handler/terminal emulator
+echo "No terminal emulator found" >&2
+exit 1

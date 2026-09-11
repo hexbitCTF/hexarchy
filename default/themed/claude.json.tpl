@@ -1,5 +1,5 @@
 {
-  "name": "Omarchy",
+  "name": "Hexarchy",
   "base": "{{ theme_type }}",
   "overrides": {
     "claude": "{{ accent }}",

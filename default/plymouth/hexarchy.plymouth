@@ -1,0 +1,11 @@
+[Plymouth Theme]
+Name=Hexarchy
+Description=Hexarchy splash screen.
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/hexarchy
+ScriptFile=/usr/share/plymouth/themes/hexarchy/hexarchy.script
+ConsoleLogBackgroundColor=0x1a1b26
+MonospaceFont=Cantarell 11
+Font=Cantarell 11

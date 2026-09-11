@@ -1,6 +1,6 @@
 # Visual Verification
 
-Read this before finishing any change with a visual effect: Omarchy shell
+Read this before finishing any change with a visual effect: Hexarchy shell
 styling and layout, panels, menus, notifications, desktop appearance,
 animations, transitions, screenshots, and screen recording flows.
 
@@ -12,11 +12,11 @@ regressions before finishing.
 Take a full-screen screenshot without opening the editor:
 
 ```bash
-omarchy capture screenshot fullscreen save
+hexarchy capture screenshot fullscreen save
 ```
 
 The command prints the saved path and writes to the configured Pictures
-directory. Use `omarchy screenshot` for the interactive smart-region flow.
+directory. Use `hexarchy screenshot` for the interactive smart-region flow.
 Capture reference and candidate states as separate images when changing a
 layer-shell surface or layout, then compare both.
 
@@ -24,9 +24,9 @@ Record a short full-screen video for animation, transition, timing, capture, or
 screen-recording changes:
 
 ```bash
-omarchy screenrecord --fullscreen
+hexarchy screenrecord --fullscreen
 # Exercise the changed behavior.
-omarchy screenrecord --stop-recording
+hexarchy screenrecord --stop-recording
 ```
 
 The stop command prints the saved video path in the configured Videos

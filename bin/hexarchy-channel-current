@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# hexarchy:summary=Print the active Hexarchy package channel
+
+set -euo pipefail
+
+# Dev is a linked source checkout: HEXARCHY_PATH points somewhere other than
+# the package-backed install at /usr/share/hexarchy. This takes precedence over
+# the package channels, since the checkout overrides whatever is installed.
+if [[ $HEXARCHY_PATH != "/usr/share/hexarchy" ]]; then
+  echo dev
+  exit 0
+fi
+
+# hexarchy-dev / hexarchy-settings-dev are only shipped from the edge package
+# repo, so their presence alone means edge. hexarchy / hexarchy-settings come
+# from either the stable or rc mirror, distinguished by hexarchy-version-channel
+# (which reports the mirror as its first token).
+if pacman -Q hexarchy-dev hexarchy-settings-dev >/dev/null 2>&1; then
+  echo edge
+elif pacman -Q hexarchy hexarchy-settings >/dev/null 2>&1; then
+  channel=$(hexarchy-version-channel 2>/dev/null | awk '{ print $1 }')
+  case "$channel" in
+    stable) echo stable ;;
+    rc) echo rc ;;
+    *) echo unknown ;;
+  esac
+else
+  echo unknown
+fi

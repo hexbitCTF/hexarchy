@@ -4,7 +4,7 @@ nvim_config_dir="$HOME/.config/nvim"
 nvim_options="$nvim_config_dir/lua/config/options.lua"
 nvim_provider="$nvim_config_dir/lua/config/remote_clipboard.lua"
 
-provider_source="/usr/share/omarchy-nvim/config/lua/config/remote_clipboard.lua"
+provider_source="/usr/share/hexarchy-nvim/config/lua/config/remote_clipboard.lua"
 
 if [[ -d $nvim_config_dir ]]; then
   mkdir -p "$(dirname "$nvim_provider")"

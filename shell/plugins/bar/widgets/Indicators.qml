@@ -6,7 +6,7 @@ import qs.Ui
 
 BarWidget {
   id: root
-  moduleName: "omarchy.indicators"
+  moduleName: "hexarchy.indicators"
 
   readonly property var defaultIndicatorEntries: [ "Dictation", "ScreenRecording", "Reminder", "NightLight", "Dnd", "StayAwake" ]
   readonly property var indicatorEntries: indicatorEntriesFromSettings(settings)
@@ -166,7 +166,7 @@ BarWidget {
     : Math.max(activeHorizontalBlock.implicitHeight, inactiveHorizontalArea.implicitHeight)
 
   IpcHandler {
-    target: "omarchy.indicators"
+    target: "hexarchy.indicators"
 
     function refresh(): void {
       root.broadcast("refresh")

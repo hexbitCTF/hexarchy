@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hexarchy:summary=Set the correct power profile on boot based on current AC/battery state.
+
+exec hexarchy-powerprofiles-set autodetect

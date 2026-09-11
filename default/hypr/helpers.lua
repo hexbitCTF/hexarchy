@@ -58,8 +58,8 @@ local function command_from(value, description)
     return value
   end
 
-  if value.omarchy then
-    return "omarchy-launch-" .. value.omarchy
+  if value.hexarchy then
+    return "hexarchy-launch-" .. value.hexarchy
   elseif value.focus and value.launch then
     return o.launch_sole(value.focus, value.launch)
   elseif value.launch then
@@ -72,9 +72,9 @@ local function command_from(value, description)
     end
   elseif value.tui then
     if value.focus then
-      return "omarchy-launch-or-focus-tui " .. shell_quote(value.tui)
+      return "hexarchy-launch-or-focus-tui " .. shell_quote(value.tui)
     else
-      return "omarchy-launch-tui " .. shell_quote(value.tui)
+      return "hexarchy-launch-tui " .. shell_quote(value.tui)
     end
   end
 
@@ -82,11 +82,11 @@ local function command_from(value, description)
 end
 
 function o.preinstalled_bindings_enabled()
-  if _G.omarchy_preinstalled_bindings ~= nil then
-    return _G.omarchy_preinstalled_bindings == true
+  if _G.hexarchy_preinstalled_bindings ~= nil then
+    return _G.hexarchy_preinstalled_bindings == true
   end
 
-  return not file_exists((os.getenv("HOME") or "") .. "/.local/state/omarchy/preinstalls-removed")
+  return not file_exists((os.getenv("HOME") or "") .. "/.local/state/hexarchy/preinstalls-removed")
 end
 
 function o.bind(keys, description, dispatcher, options)
@@ -105,11 +105,6 @@ function o.bind(keys, description, dispatcher, options)
   hl.bind(keys, dispatcher, opts)
 end
 
-function o.rebind(keys, description, dispatcher, options)
-  hl.unbind(keys)
-  o.bind(keys, description, dispatcher, options)
-end
-
 function o.launch(command)
   return "uwsm-app -- " .. command
 end
@@ -125,23 +120,23 @@ function o.launch_on_start(command)
 end
 
 function o.launch_webapp(url)
-  return "omarchy-launch-webapp " .. shell_quote(url)
+  return "hexarchy-launch-webapp " .. shell_quote(url)
 end
 
 function o.launch_webapp_sole(name, url)
-  return "omarchy-launch-or-focus-webapp " .. shell_quote(name) .. " " .. shell_quote(url)
+  return "hexarchy-launch-or-focus-webapp " .. shell_quote(name) .. " " .. shell_quote(url)
 end
 
 function o.launch_sole(match, command)
-  return "omarchy-launch-or-focus " .. shell_quote(match) .. " " .. shell_quote(o.launch(command))
+  return "hexarchy-launch-or-focus " .. shell_quote(match) .. " " .. shell_quote(o.launch(command))
 end
 
 function o.bind_toggle(keys, description, toggle, options)
-  o.bind(keys, description, "omarchy-toggle-" .. toggle, options)
+  o.bind(keys, description, "hexarchy-toggle-" .. toggle, options)
 end
 
 function o.notify(message)
-  return "omarchy-notification-send -u low " .. shell_quote(message)
+  return "hexarchy-notification-send -u low " .. shell_quote(message)
 end
 
 function o.window(match, rules)

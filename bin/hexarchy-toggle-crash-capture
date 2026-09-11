@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# hexarchy:summary=Toggle crash capture notifications
+
+# nf-md-robot_dead, escaped so this file reads without a Nerd Font.
+readonly CRASH_GLYPH=$'\U000f16a1'
+
+hexarchy-toggle crash-capture-off
+
+# The unit checks the same flag with ConditionPathExists, so stopping and
+# starting only settles this session; the next login reads the flag itself.
+if hexarchy-toggle-enabled crash-capture-off; then
+  sv stop hexarchy-crash-watch
+  hexarchy-notification-send -g "$CRASH_GLYPH" "Crash capture disabled"
+else
+  sv start hexarchy-crash-watch
+  hexarchy-notification-send -g "$CRASH_GLYPH" "Crash capture enabled"
+fi

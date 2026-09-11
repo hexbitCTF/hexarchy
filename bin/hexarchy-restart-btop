@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hexarchy:summary=Reload btop configuration (used by the Hexarchy theme switching).
+
+pkill -SIGUSR2 btop

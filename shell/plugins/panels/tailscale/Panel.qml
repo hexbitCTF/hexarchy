@@ -8,8 +8,8 @@ import qs.Ui
 
 Panel {
   id: root
-  moduleName: "omarchy.tailscale"
-  ipcTarget: "omarchy.tailscale"
+  moduleName: "hexarchy.tailscale"
+  ipcTarget: "hexarchy.tailscale"
   manageIpc: false
 
   property string focusSection: "header"
@@ -498,7 +498,6 @@ Panel {
           }
 
           Text {
-            textFormat: Text.PlainText
             visible: tailscale.actionStatus !== "" || tailscale.lastError !== ""
             width: parent.width
             text: tailscale.actionStatus !== "" ? tailscale.actionStatus : tailscale.lastError
@@ -842,7 +841,6 @@ Panel {
       }
 
       Text {
-        textFormat: Text.PlainText
         text: accountRow.accountText
         color: root.foreground
         font.family: root.fontFamily
@@ -935,7 +933,6 @@ Panel {
       spacing: Style.space(8)
 
       Text {
-        textFormat: Text.PlainText
         text: tailscale.osIcon(peer ? peer.OS : "")
         color: root.foreground
         font.family: root.fontFamily
@@ -949,7 +946,6 @@ Panel {
         spacing: Style.space(1)
 
         Text {
-          textFormat: Text.PlainText
           Layout.fillWidth: true
           text: peerRow.peerName
           color: root.foreground
@@ -959,7 +955,6 @@ Panel {
         }
 
         Text {
-          textFormat: Text.PlainText
           Layout.fillWidth: true
           text: {
             var parts = []
@@ -1092,7 +1087,6 @@ Panel {
       spacing: Style.space(10)
 
       Text {
-        textFormat: Text.PlainText
         Layout.fillWidth: true
         text: copyChoice.label
         color: root.foreground
@@ -1140,7 +1134,6 @@ Panel {
 
       Text {
         id: exitNodeGlyph
-        textFormat: Text.PlainText
         text: exitNodeRow.addMullvad ? "+" : (peer && peer.Mullvad === true ? "󰖂" : "󱇢")
         color: exitNodeRow.activeExitNode || exitNodeRow.settingExitNode || exitNodeRow.addMullvad ? root.foreground : root.dim
         font.family: root.fontFamily
@@ -1161,7 +1154,6 @@ Panel {
       }
 
       Text {
-        textFormat: Text.PlainText
         text: exitNodeRow.peerName
         color: root.foreground
         font.family: root.fontFamily
@@ -1232,7 +1224,6 @@ Panel {
         spacing: Style.space(1)
 
         Text {
-          textFormat: Text.PlainText
           width: parent.width
           text: regionRow.regionName
           color: root.foreground
@@ -1243,7 +1234,6 @@ Panel {
         }
 
         Text {
-          textFormat: Text.PlainText
           width: parent.width
           text: regionRow.regionDetail
           visible: text !== ""

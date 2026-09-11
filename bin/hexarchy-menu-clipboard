@@ -1,0 +1,6 @@
+#!/bin/bash
+# hexarchy:summary=Launch the clipboard manager
+# hexarchy:group=menu
+# hexarchy:examples=hexarchy menu clipboard
+
+hexarchy-shell shell toggle hexarchy.clipboard

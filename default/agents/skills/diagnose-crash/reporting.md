@@ -1,33 +1,33 @@
-# Reporting a Crash Upstream to Omarchy
+# Reporting a Crash Upstream to Hexarchy
 
-Read this only after concluding that a crash is genuinely Omarchy's to fix.
+Read this only after concluding that a crash is genuinely Hexarchy's to fix.
 
-## Is it even Omarchy's bug?
+## Is it even Hexarchy's bug?
 
-Be strict here. Omarchy is a configuration layer over Arch Linux, so a crash
+Be strict here. Hexarchy is a configuration layer over Arch Linux, so a crash
 inside a third-party application — a file manager, a browser, a GNOME or Qt
-library — is almost always an upstream bug in **that** project, not in Omarchy.
+library — is almost always an upstream bug in **that** project, not in Hexarchy.
 
-Omarchy's sphere of control is roughly:
+Hexarchy's sphere of control is roughly:
 
-- the `omarchy-*` commands
+- the `hexarchy-*` commands
 - the Quickshell shell and its plugins
 - the Hyprland and terminal configuration it ships
 - its themes
 - its install and migration scripts
 - how it packages and configures what it installs
 
-A crash in a program Omarchy merely installs is **not** an Omarchy bug unless
-Omarchy's own packaging or configuration is implicated.
+A crash in a program Hexarchy merely installs is **not** an Hexarchy bug unless
+Hexarchy's own packaging or configuration is implicated.
 
-If it is not Omarchy's, say so and stop. Suggesting the right upstream project is
+If it is not Hexarchy's, say so and stop. Suggesting the right upstream project is
 useful; filing there yourself is not part of this.
 
 ## Three conditions, all required
 
-1. **It is a verified bug in Omarchy's sphere**, established on evidence. Issues
+1. **It is a verified bug in Hexarchy's sphere**, established on evidence. Issues
    are for verified bugs only. An "is this even a bug?" belongs on the Discord at
-   <https://omarchy.org/discord>; a feature idea belongs in GitHub Discussions
+   <https://hexarchy.org/discord>; a feature idea belongs in GitHub Discussions
    under Suggestions.
 2. **The user has explicitly agreed.** Show them the exact title and body you
    propose, and wait for a yes. Never file unprompted.
@@ -40,8 +40,8 @@ useful; filing there yourself is not part of this.
 A duplicate issue costs a maintainer more time than no report at all.
 
 ```bash
-gh search issues --repo omacom/omarchy "<program> crash"
-gh issue list --repo omacom/omarchy --state all --search "<signal> <program>"
+gh search issues --repo basecamp/hexarchy "<program> crash"
+gh issue list --repo basecamp/hexarchy --state all --search "<signal> <program>"
 ```
 
 Search on the crashing program, the signal, and distinctive symbols from the
@@ -59,7 +59,7 @@ more than another duplicate.
 If a plausible match comes back, read it properly first:
 
 ```bash
-gh issue view <number> --repo omacom/omarchy --comments
+gh issue view <number> --repo basecamp/hexarchy --comments
 ```
 
 Confirm it is genuinely the same failure. The same program crashing is not the
@@ -74,7 +74,7 @@ A comment that only says the bug happens to you too is noise. If that is all you
 have, tell the user so and file nothing.
 
 ```bash
-gh issue comment <number> --repo omacom/omarchy --body "..."
+gh issue comment <number> --repo basecamp/hexarchy --body "..."
 ```
 
 ## Filing a new issue
@@ -82,12 +82,12 @@ gh issue comment <number> --repo omacom/omarchy --body "..."
 Only when the search turns up nothing that matches:
 
 ```bash
-gh issue create --repo omacom/omarchy --title "..." --body "..."
+gh issue create --repo basecamp/hexarchy --title "..." --body "..."
 ```
 
 Include what happened, what was expected, steps to reproduce, system details from
-`omarchy version`, and diagnostics from `omarchy debug --no-sudo --print` (which
-also writes `/tmp/omarchy-debug.log`; the interactive `omarchy debug` can upload
+`hexarchy version`, and diagnostics from `hexarchy debug --no-sudo --print` (which
+also writes `/tmp/hexarchy-debug.log`; the interactive `hexarchy debug` can upload
 it and print a shareable URL worth including).
 
 `gh` cannot attach media. If a screenshot would help, save one and give the user

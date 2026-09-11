@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# hexarchy:summary=Open a config file in the user's editor and surface a toast
+# hexarchy:args=<path>
+# hexarchy:examples=hexarchy launch config-editor ~/.config/hypr/hyprland.lua
+
+path="${1-}"
+
+if [[ -z $path ]]; then
+  echo "Usage: hexarchy-launch-config-editor <path>" >&2
+  exit 1
+fi
+
+hexarchy-notification-send -u low "Editing config file" "$path"
+exec hexarchy-launch-editor "$path"

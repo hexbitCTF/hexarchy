@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hexarchy:summary=Restart the hyprsunset service (used for blue light filtering/night light).
+
+hexarchy-restart-app hyprsunset

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hexarchy:summary=Detect ASUS Zenbook UX5406AA series laptops on Intel Panther Lake.
+
+hexarchy-hw-match "ux5406aa" && hexarchy-hw-intel-ptl

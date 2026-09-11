@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# hexarchy:summary=Install the NordVPN service with optional GUI.
+# hexarchy:requires-sudo=true
+
+echo "Installing NordVPN..."
+hexarchy-pkg-add nordvpn-bin
+
+echo "Enabling NordVPN daemon..."
+sudo ln -s /etc/runit/sv/nordvpnd /run/runit/service/
+sudo sv start nordvpnd
+
+echo "Adding user to nordvpn group..."
+sudo usermod -aG nordvpn "$USER"
+
+echo -e "\nNordVPN installed! After reboot, run 'nordvpn login' to authenticate."
+
+echo
+gum confirm "Reboot now to make NordVPN usable?" && hexarchy-system-reboot

@@ -1,0 +1,7 @@
+NAME="Hexarchy"
+VERSION="4.0.0-alpha"
+ID=hexarchy
+ID_LIKE=arch artix
+PRETTY_NAME="Hexarchy 4.0.0-alpha"
+HOME_URL="https://hexarchy.org"
+BUG_REPORT_URL="https://github.com/hexbit/hexarchy/issues"

@@ -6,7 +6,7 @@ if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
 fi
 
 ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
-ARTIFACTS="${OMARCHY_ACCEPTANCE_DIR:-/tmp/omarchy-acceptance}"
+ARTIFACTS="${HEXARCHY_ACCEPTANCE_DIR:-/tmp/hexarchy-acceptance}"
 
 mkdir -p "$ARTIFACTS"
 
@@ -34,11 +34,9 @@ screenshot() {
 
 screen_contains() {
   local text="$1"
-  local snapshot="/tmp/omarchy-acceptance-ocr-$$.png"
+  local snapshot="/tmp/hexarchy-acceptance-ocr-$$.png"
 
-  # Capture at 2x scale: tesseract routinely drops small caption text at
-  # native resolution (the weather panel's detail labels, for one).
-  if ! timeout 10 grim -s 2 "$snapshot" 2>/dev/null; then
+  if ! timeout 10 grim "$snapshot" 2>/dev/null; then
     rm -f "$snapshot"
     return 1
   fi

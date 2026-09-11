@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# hexarchy:summary=Overwrite all the user Hyprland Lua configs in ~/.config/hypr with the Hexarchy defaults.
+
+hexarchy-refresh-config hypr/.luarc.json
+hexarchy-refresh-config hypr/autostart.lua
+hexarchy-refresh-config hypr/bindings.lua
+hexarchy-refresh-config hypr/input.lua
+hexarchy-refresh-config hypr/looknfeel.lua
+hexarchy-refresh-config hypr/hyprland.lua
+hexarchy-refresh-config hypr/monitors.lua
+
+mkdir -p ~/.local/state/hexarchy/toggles/hypr
+cp "$HEXARCHY_PATH/default/hypr/toggles/flags.lua" ~/.local/state/hexarchy/toggles/hypr/

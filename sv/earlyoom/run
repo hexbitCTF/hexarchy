@@ -1,0 +1,2 @@
+#!/bin/sh
+exec earlyoom -m "4,5" -s "10,5" --prefer '(^.+.slice$|node$)' --avoid '(^Xorg$|^sshd$|^tmux$)'

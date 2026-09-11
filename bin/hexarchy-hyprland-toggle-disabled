@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# hexarchy:summary=Check if a Hyprland toggle is currently disabled (missing).
+# hexarchy:args=<flag-name>
+
+[[ ! -f "$HOME/.local/state/hexarchy/toggles/hypr/$1.lua" ]]

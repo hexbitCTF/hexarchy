@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# hexarchy:summary=Remove Voxtype dictation and its configuration
+# hexarchy:requires-sudo=true
+
+set -e
+
+# Remove voxtype and its configurations.
+
+if hexarchy-cmd-present voxtype; then
+  echo "Uninstall Voxtype to remove dictation."
+
+  # Remove services
+  sv stop voxtype 2>/dev/null || true
+  rm -f /run/runit/service/voxtype 2>/dev/null || true
+
+  # Remove packages and configs
+  hexarchy-pkg-drop voxtype-bin
+  rm -rf ~/.config/voxtype
+  rm -rf ~/.local/share/voxtype
+  hyprctl reload >/dev/null
+else
+  echo "Voxtype was not installed."
+fi

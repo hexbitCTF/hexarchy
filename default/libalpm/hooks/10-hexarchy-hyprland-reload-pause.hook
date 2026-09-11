@@ -1,0 +1,12 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = hexarchy-settings
+Target = hexarchy-settings-dev
+
+[Action]
+Description = Pausing Hyprland config auto-reload for Hexarchy settings update...
+When = PreTransaction
+Depends = hexarchy
+Exec = /usr/bin/hexarchy-hyprland-reload-guard pause

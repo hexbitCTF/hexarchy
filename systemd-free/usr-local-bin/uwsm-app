@@ -1,0 +1,4 @@
+#!/bin/sh
+# Shim for uwsm-app on runit - just execute the command
+# uwsm-app on systemd wraps apps in a cgroup; on runit we just run them directly
+exec "$@"

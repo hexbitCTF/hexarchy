@@ -1,13 +1,13 @@
 echo "Repair theme symlinks the state-move migration left dangling"
 
 # 1781043107.sh re-linked legacy theme symlinks whose targets were stored as a
-# literal "~/.config/omarchy/current/..." string. The replacement used the same
+# literal "~/.config/hexarchy/current/..." string. The replacement used the same
 # literal tilde, which the filesystem never expands inside a symlink target, so
 # btop, Helix, and VS Code/Cursor would have lost their theme while the
 # migration reported success anyway. That migration is already marked applied
 # everywhere it ran, so this one repairs any link it left dangling.
 #
-# No shipped Omarchy code ever wrote these six targets with a literal tilde, so
+# No shipped Hexarchy code ever wrote these six targets with a literal tilde, so
 # this is expected to be a no-op almost everywhere, and it stays deliberately
 # narrow to keep it that way. Only a target that starts with a literal "~/" is
 # repaired: the filesystem never expands one, so such a link cannot ever have
@@ -31,21 +31,21 @@ relink_if_dangling() {
 
   # Only an unexpandable literal-tilde target naming this theme file is ours.
   case "$target" in
-    "~/"*/omarchy/current/theme/"${expected_target##*/}") ;;
+    "~/"*/hexarchy/current/theme/"${expected_target##*/}") ;;
     *) return 0 ;;
   esac
 
   ln -sfn "$expected_target" "$link"
 }
 
-current_state_dir="$HOME/.local/state/omarchy/current"
+current_state_dir="$HOME/.local/state/hexarchy/current"
 
 relink_if_dangling "$HOME/.config/btop/themes/current.theme" \
   "$current_state_dir/theme/btop.theme"
-relink_if_dangling "$HOME/.config/helix/themes/omarchy.toml" \
+relink_if_dangling "$HOME/.config/helix/themes/hexarchy.toml" \
   "$current_state_dir/theme/helix.toml"
 
 for vscode_dir in "$HOME/.vscode" "$HOME/.vscode-insiders" "$HOME/.vscode-oss" "$HOME/.cursor"; do
-  relink_if_dangling "$vscode_dir/extensions/omarchy-theme/themes/omarchy-color-theme.json" \
+  relink_if_dangling "$vscode_dir/extensions/hexarchy-theme/themes/hexarchy-color-theme.json" \
     "$current_state_dir/theme/vscode-theme.json"
 done

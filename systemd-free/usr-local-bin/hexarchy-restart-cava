@@ -1,0 +1,3 @@
+#!/bin/bash
+# hexarchy:summary=Reload cava configuration after theme changes
+pkill -SIGUSR1 cava 2>/dev/null || true

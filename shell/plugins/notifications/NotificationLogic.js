@@ -5,92 +5,8 @@ function isChromiumDerived(app, appIcon) {
          source.indexOf("opera") >= 0
 }
 
-// True when a `<...>` run is an image tag, so the name is read the way Qt's
-// parser reads it: after the `<`, the leading run of letters and digits.
-//
-// Skip everything up to that run rather than matching the separator, because
-// there is no JavaScript expression for what Qt skips. QQuickStyledText calls
-// skipSpace(), which is QChar::isSpace(), and that set is not `\s`: Qt counts
-// U+0085 NEL and `\s` does not, while `\s` counts U+FEFF and Qt does not. A
-// name read with `\s` therefore misses a tag written as `<`, U+0085, `img`:
-// Qt skips the NEL, reads `img` and issues the GET, while the regex finds no
-// name at all and the tag is kept. Measured against Qt 6.11.2.
-//
-// Over-skipping is the safe direction. It can only classify more runs as
-// images, and dropping a run never manufactures a tag: a dropped run joins two
-// stretches of text that each contain no `<`.
-function isImageTag(tag) {
-  var name = /^<[^A-Za-z0-9]*([A-Za-z0-9]+)/.exec(tag)
-  return !!name && name[1].toLowerCase() === "img"
-}
-
-// The body renders as StyledText so notifications can use the markup the
-// body-markup capability advertises (see Service.qml). StyledText honours
-// <img src>, and a remote src makes the shell issue an unauthenticated GET
-// with no user action, so image tags go before the renderer sees them.
-//
-// Work in whole tags, never in substrings of one. A `<` opens a tag that runs
-// to the next `>`, nested `<` and all, and only a tag whose own name is `img`
-// is dropped.
-//
-// That is the conservative bound, not Qt's exact one: Qt lets a `>` inside a
-// quoted attribute value pass without closing the tag, so a Qt tag can be
-// longer than the run taken here. Do not "correct" this to match Qt. Taking
-// the shorter run only ever splits one Qt tag into several, and a split can
-// only expose an `<img` to be dropped, never hide one — whereas honouring
-// quotes would let `<b title="a>b"><img src="http://host/x.png">` through.
-//
-// Deleting a substring is what makes a naive `/<img[^>]*>/g` unsafe. Given
-//
-//   <im<img src="http://a/decoy.png">g src="http://a/beacon.png">
-//
-// Qt reads ONE malformed tag named `im` and renders nothing, but removing the
-// inner match closes the surviving halves up into `<img src=".../beacon.png">`
-// — a live tag the input never contained. The stripper would be manufacturing
-// the very thing it exists to remove.
-//
-// Because every `<` opens a tag, the text between tags never contains one, so
-// dropping a tag cannot splice its neighbours into a new one. That makes a
-// single pass sufficient, with no re-scanning and no input bound to police.
-function stripImageTags(text) {
-  var out = ""
-  var i = 0
-
-  while (i < text.length) {
-    var open = text.indexOf("<", i)
-    if (open === -1) {
-      out += text.slice(i)
-      break
-    }
-
-    out += text.slice(i, open)
-
-    // An unterminated tag at the end of the string still reaches the renderer,
-    // which closes it itself, so treat the remainder as one tag.
-    var close = text.indexOf(">", open)
-    var tag = close === -1 ? text.slice(open) : text.slice(open, close + 1)
-
-    if (!isImageTag(tag)) out += tag
-    i = close === -1 ? text.length : close + 1
-  }
-
-  return out
-}
-
-// What the card renders, and the last thing to touch the string before Qt parses
-// it. The newline rewrite belongs here rather than in the card because it inserts
-// `<br/>` into text stripImageTags chose to KEEP, and a kept tag may hold a `<` of
-// its own: `<x`, newline, `<img src="http://…">` is one tag named `x` to both the
-// stripper and Qt, until the rewrite splits it into `<x<br/>` and a live image tag
-// the input never contained. Measured against Qt 6.11.2 — the rewritten form
-// fetches, the original does not. So strip again after, and what Qt parses is what
-// was checked last.
-function styledBody(body, app, appIcon) {
-  return stripImageTags(sanitizeBody(body, app, appIcon).replace(/\r\n|\r|\n/g, "<br/>"))
-}
-
 function sanitizeBody(body, app, appIcon) {
-  var text = stripImageTags(String(body || ""))
+  var text = String(body || "").replace(/<img[^>]*>/gi, "")
   if (!isChromiumDerived(app, appIcon)) return text
 
   return text
@@ -117,13 +33,13 @@ function summaryStartsWithGlyph(summary) {
 
 function shouldBypassDnd(notification, criticalUrgency) {
   var appName = String((notification && notification.appName) || "")
-  if (appName === "omarchy-action") return true
+  if (appName === "hexarchy-action") return true
   return appName === "notify-send" && notification && notification.urgency === criticalUrgency
 }
 
 function isEphemeralApp(appName) {
   var name = String(appName || "")
-  return name === "notify-send" || name === "omarchy-action"
+  return name === "notify-send" || name === "hexarchy-action"
 }
 
 function stringHint(hints, name) {
@@ -138,19 +54,19 @@ function stringHint(hints, name) {
 }
 
 function glyphFromHints(hints) {
-  return stringHint(hints, "omarchy-glyph")
+  return stringHint(hints, "hexarchy-glyph")
 }
 
-// The click action: a JSON argv string from omarchy-notification-send
+// The click action: a JSON argv string from hexarchy-notification-send
 // --exec. Carried as data so a toast restored after a shell restart stays
 // clickable (a libnotify action can't — its sender is gone). Run via
 // Util.execArgv as bash positional parameters, never a shell string, so
 // attacker-controlled values (a title, a filename) can't become commands.
 function execArgvFromHints(hints) {
-  return stringHint(hints, "omarchy-exec-argv")
+  return stringHint(hints, "hexarchy-exec-argv")
 }
 
-// Validate a persisted omarchy-exec-argv into a runnable argv, or null. This is
+// Validate a persisted hexarchy-exec-argv into a runnable argv, or null. This is
 // a STRUCTURAL check only: it fails closed on a malformed hint (non-array, a
 // non-string or empty program, or a leading-dash program that argv would read as
 // an option). It does not judge intent — a well-formed ["bash","-c",…] is
@@ -275,8 +191,8 @@ function parseSettings(raw) {
 // ---------------------------------------------------- popup persistence
 //
 // Each on-screen popup is mirrored to its own file under
-// ~/.local/state/omarchy/notifications/ so toasts survive shell restarts
-// (e.g. the restart `omarchy-update` performs). The file exists exactly as
+// ~/.local/state/hexarchy/notifications/ so toasts survive shell restarts
+// (e.g. the restart `hexarchy-update` performs). The file exists exactly as
 // long as the popup is on screen: it is written when the toast appears and
 // moved into the history/ subdirectory when the toast expires, is dismissed,
 // or its action is invoked. History is those moved files, newest last-10.
@@ -301,7 +217,7 @@ function popupFileName(entry) {
 // ---------------------------------------------------- persisted images
 //
 // A notification's images only exist while it is live: Chromium-family
-// senders (all Omarchy web apps) delete their scoped /tmp files on close,
+// senders (all Hexarchy web apps) delete their scoped /tmp files on close,
 // and image-data hints surface as in-process image:// URLs that die with
 // the server object. Persisted entries therefore reference their own
 // copies, named by the entry's file stem so cleanup can find them from
@@ -450,7 +366,6 @@ if (typeof module !== "undefined") {
   module.exports = {
     isChromiumDerived: isChromiumDerived,
     sanitizeBody: sanitizeBody,
-    styledBody: styledBody,
     summaryStartsWithGlyph: summaryStartsWithGlyph,
     shouldBypassDnd: shouldBypassDnd,
     isEphemeralApp: isEphemeralApp,

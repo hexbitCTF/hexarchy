@@ -8,16 +8,14 @@ Item {
   id: root
 
   property var shell: null
-  property string omarchyPath: Quickshell.env("OMARCHY_PATH")
+  property string hexarchyPath: Quickshell.env("HEXARCHY_PATH")
 
   readonly property int batteryThreshold: 10
   property string pendingPowerSource: ""
-  property string activePowerProfile: ""
-  readonly property bool powerSaverOnBattery: UPower.onBattery && activePowerProfile === "power-saver"
 
   PersistentProperties {
     id: persisted
-    reloadableId: "omarchy-battery"
+    reloadableId: "hexarchy-battery"
     property bool notifiedLowBattery: false
   }
 
@@ -38,7 +36,7 @@ Item {
   function sendLowBatteryWarning(level) {
     if (warningProcess.running) return
     warningProcess.command = [
-      "omarchy-battery-low",
+      "hexarchy-battery-low",
       String(level)
     ]
     warningProcess.running = true
@@ -50,43 +48,16 @@ Item {
   }
 
   function runPendingPowerProfile() {
-    powerProfileProcess.command = ["omarchy-powerprofiles-set", pendingPowerSource]
+    powerProfileProcess.command = ["hexarchy-powerprofiles-set", pendingPowerSource]
     pendingPowerSource = ""
     powerProfileProcess.running = true
-  }
-
-  function refreshPowerProfile() {
-    if (!powerProfileReadProcess.running) powerProfileReadProcess.running = true
   }
 
   Process { id: warningProcess }
 
   Process {
     id: powerProfileProcess
-    onExited: {
-      if (root.pendingPowerSource !== "") root.runPendingPowerProfile()
-      root.refreshPowerProfile()
-    }
-  }
-
-  Process {
-    id: powerProfileReadProcess
-    command: ["powerprofilesctl", "get"]
-    stdout: StdioCollector {
-      waitForEnd: true
-      onStreamFinished: root.activePowerProfile = String(text || "").trim()
-    }
-  }
-
-  Timer {
-    // powerprofilesctl has no portable monitor subcommand; keep profile changes
-    // visible to consumers such as the wallpaper service without requiring the
-    // power panel to be open.
-    interval: 2000
-    running: true
-    repeat: true
-    triggeredOnStart: true
-    onTriggered: root.refreshPowerProfile()
+    onExited: if (root.pendingPowerSource !== "") root.runPendingPowerProfile()
   }
 
   Timer {
@@ -102,9 +73,6 @@ Item {
     function onOnBatteryChanged() {
       root.checkBattery()
       root.applyPowerProfile()
-      root.refreshPowerProfile()
     }
   }
-
-  Component.onCompleted: root.refreshPowerProfile()
 }

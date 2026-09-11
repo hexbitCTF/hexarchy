@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hexarchy:summary=Check whether a webcam is available
+
+[[ -n $(hexarchy-capture-webcam-list) ]]

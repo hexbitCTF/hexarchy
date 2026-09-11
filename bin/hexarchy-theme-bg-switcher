@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# hexarchy:summary=Open the Hexarchy background switcher
+# hexarchy:group=theme
+# hexarchy:name=bg-switcher
+# hexarchy:aliases=hexarchy background
+
+theme_name=$(cat "$HOME/.local/state/hexarchy/current/theme.name" 2>/dev/null)
+current_background=$(readlink -f "$HOME/.local/state/hexarchy/current/background" 2>/dev/null)
+
+hexarchy-menu-images \
+  --selected "$current_background" \
+  "$HOME/.local/state/hexarchy/current/theme/backgrounds" \
+  "$HOME/.config/hexarchy/backgrounds/$theme_name"

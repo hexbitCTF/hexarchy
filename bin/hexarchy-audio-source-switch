@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# hexarchy:summary=Cycle to the next media source and transfer playback when the current source is playing
+# hexarchy:args=[next|previous]
+# hexarchy:examples=hexarchy audio source switch | hexarchy-audio-source-switch previous
+
+direction="${1:-next}"
+
+case "$direction" in
+  next)
+    hexarchy-shell media sourceSwitch
+    ;;
+  previous)
+    hexarchy-shell media sourceSwitchPrevious
+    ;;
+  *)
+    echo "Usage: hexarchy-audio-source-switch [next|previous]" >&2
+    exit 1
+    ;;
+esac

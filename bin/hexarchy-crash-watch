@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# hexarchy:summary=Watch for process crashes and offer an AI diagnosis
+# hexarchy:hidden=true
+
+# Core dumps land as files under /var/lib/systemd/coredump/. This watches for
+# new ones and offers an AI diagnosis.
+
+set -uo pipefail
+
+readonly COREDUMP_DIR=/var/lib/systemd/coredump
+
+# nf-md-robot_dead, escaped so this file reads without a Nerd Font.
+readonly CRASH_GLYPH=$'\U000f16a1'
+
+# Crash loops dump core repeatedly, so announce each program at most once a
+# window.
+readonly dedupe_seconds=${HEXARCHY_CRASH_DEDUPE_SECONDS:-60}
+
+# Extended regex of process names never worth announcing.
+readonly ignore_pattern=${HEXARCHY_CRASH_IGNORE:-}
+
+declare -A last_notified
+
+announce() {
+  local comm=$1 pid=$2 exe=$3 signal=$4
+
+  # The shell owns org.freedesktop.Notifications, so a shell crash takes the
+  # notification server down with it and a toast sent into that gap is lost.
+  # Wait for the restarted shell to claim the name again: the crash least
+  # likely to be delivered is the one most worth reporting.
+  hexarchy-notification-wait || return 1
+
+  # --exec rather than a libnotify action: the shell runs clicks from its own
+  # hint and never emits ActionInvoked. Keeps the default "hexarchy-action" app
+  # name, the only one shouldBypassDnd() lets through. Crash details ride as
+  # discrete argv words, so a hostile process name can't be reparsed as a
+  # command. --exec consumes the rest of the line, so it comes last.
+  hexarchy-notification-send \
+    --urgency critical \
+    --glyph "$CRASH_GLYPH" \
+    "Process crashed: $comm" \
+    "Click to diagnose with AI" \
+    --exec hexarchy-agent-crash "$pid" "$comm" "$exe" "$signal"
+}
+
+ls -1t "$COREDUMP_DIR"/core.* 2>/dev/null | head -1 > /dev/null 2>&1 || :
+# Snapshot the existing core files before starting the watch.
+declare -A known_cores
+for _f in "$COREDUMP_DIR"/core.*; do
+  [[ -f $_f ]] && known_cores[$_f]=1
+done
+
+while true; do
+  for _f in "$COREDUMP_DIR"/core.*; do
+    [[ -f $_f ]] || continue
+    [[ -n ${known_cores[$_f]:-} ]] && continue
+    known_cores[$_f]=1
+
+    filename=${_f##*/}
+    IFS='.' read -r _core_label comm pid exe _rest <<< "$filename"
+    [[ $pid =~ ^[0-9]+$ ]] || continue
+
+    signal=$(echo "$_rest" | rev | cut -d. -f2 | rev 2>/dev/null) || signal="unknown"
+
+    [[ -n $(hexarchy-default-agent) ]] || continue
+
+    name=$comm
+    [[ $exe == /* ]] && name=${exe##*/}
+
+    [[ -n $ignore_pattern && $name =~ $ignore_pattern ]] && continue
+    [[ $name == hexarchy-crash-* || $name == hexarchy-agent-* ]] && continue
+
+    now=$EPOCHSECONDS
+    (((now - ${last_notified[$name]:-0}) < dedupe_seconds)) && continue
+
+    announce "$name" "$pid" "$exe" "$signal" && last_notified[$name]=$now
+  done
+  sleep 2
+done

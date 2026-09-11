@@ -1,0 +1,11 @@
+#!/bin/sh
+# Remove modules from kernels no longer installed
+/usr/bin/pacman -Qq linux linux-lts linux-zen linux-hardened 2>/dev/null | sort -u > /tmp/hexarchy-running-kernels
+for mod_dir in /usr/lib/modules/*/; do
+  kver=$(basename "$mod_dir")
+  if ! grep -q "^${kver%%.*}" /tmp/hexarchy-running-kernels 2>/dev/null; then
+    /usr/bin/pacman -Rns --noconfirm "linux-${kver}" 2>/dev/null || true
+  fi
+done
+rm -f /tmp/hexarchy-running-kernels
+exit 0

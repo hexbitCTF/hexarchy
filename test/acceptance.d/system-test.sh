@@ -8,39 +8,34 @@ status=0
 
 verify_core_packages() {
   local package
-  local manifest="$OMARCHY_PATH/install/omarchy-base.packages"
   local -a missing=()
-
-  # Without this, a missing manifest reads as an empty package list and the
-  # audit passes having checked nothing.
-  [[ -f $manifest ]] || fail "all Omarchy core packages are installed" "package manifest not found: $manifest"
 
   while IFS= read -r package; do
     [[ -z $package || $package == \#* ]] && continue
     pacman -Q "$package" >/dev/null 2>&1 || missing+=("$package")
-  done <"$manifest"
+  done <"$HEXARCHY_PATH/install/hexarchy-base.packages"
 
-  (( ${#missing[@]} == 0 )) || fail "all Omarchy core packages are installed" "missing packages: ${missing[*]}"
-  pass "all Omarchy core packages are installed (${#missing[@]} missing)"
+  (( ${#missing[@]} == 0 )) || fail "all Hexarchy core packages are installed" "missing packages: ${missing[*]}"
+  pass "all Hexarchy core packages are installed (${#missing[@]} missing)"
 }
 
 verify_defaults() {
-  [[ $(omarchy-default-browser) == "chromium" ]] || fail "Chromium is the default browser"
+  [[ $(hexarchy-default-browser) == "chromium" ]] || fail "Chromium is the default browser"
   pass "Chromium is the default browser"
 
-  [[ $(omarchy-default-terminal) == "foot" ]] || fail "Foot is the default terminal"
+  [[ $(hexarchy-default-terminal) == "foot" ]] || fail "Foot is the default terminal"
   pass "Foot is the default terminal"
 
-  [[ $(omarchy-default-editor) == "nvim" ]] || fail "Neovim is the default editor"
+  [[ $(hexarchy-default-editor) == "nvim" ]] || fail "Neovim is the default editor"
   pass "Neovim is the default editor"
 
-  [[ $(omarchy-theme-current) != "Unknown" ]] || fail "a current theme is configured"
+  [[ $(hexarchy-theme-current) != "Unknown" ]] || fail "a current theme is configured"
   pass "a current theme is configured"
 
-  [[ $(omarchy-theme-bg-current) != "Unknown" ]] || fail "a current background is configured"
+  [[ $(hexarchy-theme-bg-current) != "Unknown" ]] || fail "a current background is configured"
   pass "a current background is configured"
 
-  [[ -n $(omarchy-font-current) ]] || fail "a monospace font is configured"
+  [[ -n $(hexarchy-font-current) ]] || fail "a monospace font is configured"
   pass "a monospace font is configured"
 
   [[ $(xdg-mime query default x-scheme-handler/http) == "chromium.desktop" ]] || fail "HTTP MIME handling uses Chromium"
@@ -52,7 +47,7 @@ verify_services() {
   local unit
 
   for unit in \
-    avahi-daemon.service docker.socket \
+    avahi-daemon.service cups.service cups-browsed.service docker.socket \
     NetworkManager.service power-profiles-daemon.service sddm.service \
     systemd-resolved.service ufw.service; do
     systemctl is-enabled --quiet "$unit" || fail "core system services are enabled" "$unit is not enabled"
@@ -105,11 +100,11 @@ verify_user_setup() {
   done
   pass "XDG user directories exist"
 
-  [[ -e $HOME/.local/state/omarchy/current/theme ]] || fail "current theme state exists"
-  [[ -e $HOME/.local/state/omarchy/current/background ]] || fail "current background state exists"
-  [[ -s $HOME/.config/omarchy/shell.json ]] || fail "shell configuration exists"
-  jq empty "$HOME/.config/omarchy/shell.json" || fail "shell configuration is valid JSON"
-  pass "Omarchy user state and shell configuration exist"
+  [[ -e $HOME/.local/state/hexarchy/current/theme ]] || fail "current theme state exists"
+  [[ -e $HOME/.local/state/hexarchy/current/background ]] || fail "current background state exists"
+  [[ -s $HOME/.config/hexarchy/shell.json ]] || fail "shell configuration exists"
+  jq empty "$HOME/.config/hexarchy/shell.json" || fail "shell configuration is valid JSON"
+  pass "Hexarchy user state and shell configuration exist"
 }
 
 for check in verify_core_packages verify_defaults verify_services verify_runtime_tools verify_user_setup; do

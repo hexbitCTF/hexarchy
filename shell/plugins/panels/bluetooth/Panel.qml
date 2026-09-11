@@ -10,14 +10,14 @@ import "Model.js" as Model
 
 Panel {
   id: root
-  moduleName: "omarchy.bluetooth"
-  ipcTarget: "omarchy.bluetooth"
+  moduleName: "hexarchy.bluetooth"
+  ipcTarget: "hexarchy.bluetooth"
   // manageIpc: false so this panel can own the single IpcHandler the target
   // permits — needed for the toggleBluetooth method below.
   manageIpc: false
 
   // Address -> "connecting" | "disconnecting" | "forgetting".
-  // The actual Bluetooth sequencing lives in bin/omarchy-bluetooth-device;
+  // The actual Bluetooth sequencing lives in bin/hexarchy-bluetooth-device;
   // this map only keeps the panel responsive while BlueZ catches up.
   property var pendingActions: ({})
 
@@ -208,7 +208,7 @@ Panel {
     Pipewire.preferredDefaultAudioSink = sink
     if (sink.id !== undefined && sink.name) {
       Quickshell.execDetached([
-        "omarchy-audio-output-set-default",
+        "hexarchy-audio-output-set-default",
         String(sink.id),
         String(sink.name)
       ])
@@ -264,7 +264,7 @@ Panel {
   }
 
   function deviceCommand(action, address) {
-    return ["omarchy-bluetooth-device", action, address]
+    return ["hexarchy-bluetooth-device", action, address]
   }
 
   function runDeviceAction(device, action, pending) {
@@ -397,7 +397,7 @@ Panel {
   }
 
   // 'x' forgets remembered devices. For connected devices this first
-  // disconnects, then removes the BlueZ pairing record via omarchy-bluetooth-device.
+  // disconnects, then removes the BlueZ pairing record via hexarchy-bluetooth-device.
   function deleteSelected() {
     if (focusSection !== "known" && focusSection !== "connected") return
     var dev = deviceAt(focusSection, selectedIndex)
@@ -625,7 +625,7 @@ Panel {
   }
 
   // Not adapter.enabled: that writes BlueZ's Powered, which nothing persists, so
-  // the adapter came back on at the next boot. omarchy-bluetooth-power moves the
+  // the adapter came back on at the next boot. hexarchy-bluetooth-power moves the
   // rfkill soft block instead, which systemd-rfkill restores across reboots.
   // Powered still follows the block, so the switch and icon read it as before.
   //
@@ -634,11 +634,11 @@ Panel {
   // would re-read the old state and undo the first.
   function toggleBluetooth() {
     if (!adapter) return
-    Quickshell.execDetached(["omarchy-bluetooth-power", adapter.enabled ? "off" : "on"])
+    Quickshell.execDetached(["hexarchy-bluetooth-power", adapter.enabled ? "off" : "on"])
   }
 
   IpcHandler {
-    target: "omarchy.bluetooth"
+    target: "hexarchy.bluetooth"
 
     function open() { root.open() }
     function close() { root.close() }
@@ -698,7 +698,6 @@ Panel {
           // Status only — the switch owns toggling, mouse and keyboard alike.
           Text {
             id: heroIcon
-            textFormat: Text.PlainText
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             text: root.icon
@@ -749,7 +748,6 @@ Panel {
 
             Text {
               id: heroStatus
-              textFormat: Text.PlainText
               text: root.heroStatusText.toUpperCase()
               color: Qt.darker(root.bar.foreground, 1.4)
               font.family: root.bar.fontFamily
@@ -865,7 +863,6 @@ Panel {
         }
 
         Text {
-          textFormat: Text.PlainText
           visible: root.connectedDevices.length === 0 && root.scrollRows.length === 0
           text: !root.adapter ? "No Bluetooth adapter"
               : !root.adapter.enabled ? "Turn Bluetooth on to scan"
@@ -974,7 +971,6 @@ Panel {
 
       Text {
         id: deviceIcon
-        textFormat: Text.PlainText
         text: row.isConnected ? "󰂱" : "󰂯"
         color: row.statusColor
         font.family: root.bar.fontFamily
@@ -993,7 +989,6 @@ Panel {
         anchors.verticalCenter: parent.verticalCenter
 
         Text {
-          textFormat: Text.PlainText
           text: root.deviceLabel(row.dev) || "Device"
           color: root.bar.foreground
           font.family: root.bar.fontFamily
@@ -1002,7 +997,6 @@ Panel {
           width: parent.width
         }
         Text {
-          textFormat: Text.PlainText
           visible: row.statusText !== ""
           text: row.statusText
           color: row.statusColor

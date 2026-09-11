@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# hexarchy:summary=Toggle bar visibility without killing the Hexarchy shell
+# hexarchy:args=[toggle|on|off]
+# hexarchy:examples=hexarchy toggle bar | hexarchy toggle bar off | hexarchy toggle bar on
+
+hexarchy-toggle bar-off "${1:-toggle}"

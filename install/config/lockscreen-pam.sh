@@ -1,1 +1,1 @@
-omarchy-apply-lock
+hexarchy-apply-lock

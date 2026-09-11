@@ -1,0 +1,12 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = hexarchy-settings
+Target = hexarchy-settings-dev
+
+[Action]
+Description = Reloading Hyprland after Hexarchy settings update...
+When = PostTransaction
+Depends = hexarchy
+Exec = /usr/bin/hexarchy-hyprland-reload-guard resume

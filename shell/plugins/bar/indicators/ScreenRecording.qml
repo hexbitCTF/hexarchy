@@ -37,7 +37,7 @@ BarIndicator {
 
   onPressed: function() {
     if (root.bar) {
-      root.bar.run(root.recording ? "omarchy-capture-screenrecording --stop-recording" : "omarchy-menu toggle trigger.capture.screenrecord")
+      root.bar.run(root.recording ? "hexarchy-capture-screenrecording --stop-recording" : "hexarchy-menu toggle trigger.capture.screenrecord")
     }
   }
 }

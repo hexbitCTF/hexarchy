@@ -24,7 +24,7 @@ write_connectors() {
 }
 
 has_external_monitor() {
-  OMARCHY_DRM_PATH="$drm_path" "$ROOT/bin/omarchy-hw-external-monitors"
+  HEXARCHY_DRM_PATH="$drm_path" "$ROOT/bin/hexarchy-hw-external-monitors"
 }
 
 write_connectors

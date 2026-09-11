@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# hexarchy:summary=List available monospace fonts
+# hexarchy:examples=hexarchy font list | hexarchy font set "CaskaydiaMono Nerd Font"
+
+fc-list :spacing=100 -f "%{family[0]}\n" | grep -v -i -E 'emoji|signwriting|hexarchy' | sort -u

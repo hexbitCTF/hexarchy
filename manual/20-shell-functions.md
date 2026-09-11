@@ -1,6 +1,6 @@
 # Shell Functions
 
-Omarchy comes with a set of shell functions to simplify common tasks and encapsulate convoluted parameter calls.
+Hexarchy comes with a set of shell functions to simplify common tasks and encapsulate convoluted parameter calls.
 
 ## Compression
 

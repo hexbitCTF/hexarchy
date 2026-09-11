@@ -69,7 +69,6 @@ BorderSurface {
       anchors.verticalCenter: parent.verticalCenter
 
       Text {
-        textFormat: Text.PlainText
         text: root.label
         color: root.foreground
         font.family: root.fontFamily
@@ -80,7 +79,6 @@ BorderSurface {
       }
 
       Text {
-        textFormat: Text.PlainText
         visible: root.description !== ""
         text: root.description
         color: Qt.darker(root.foreground, 1.5)

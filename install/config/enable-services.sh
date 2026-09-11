@@ -1,18 +1,43 @@
-# Enable services only. Installs are followed by reboot, so don't start/reload
-# daemons mid-install. UFW and hardware-gated services stay in their own scripts.
-systemctl enable cups.service
-systemctl enable avahi-daemon.service
-systemctl enable linux-modules-cleanup.service
-systemctl enable docker.socket
-systemctl enable systemd-resolved.service
-systemctl enable NetworkManager.service
-# Don't let network-online.target hold up graphical.target waiting for
-# DHCP/Wi-Fi association. Nothing in the session needs to block on the network.
-# Mirrors the systemd-networkd-wait-online mask in install/hardware/network.sh.
-systemctl mask NetworkManager-wait-online.service
-systemctl enable power-profiles-daemon.service
-systemctl enable sddm.service
-# Kill one runaway app scope instead of letting reclaim thrashing take the
-# whole session down. [Install] pulls in systemd-oomd.socket via Also=, which
-# is what the user manager reports app.slice candidacy over.
-systemctl enable systemd-oomd.service
+#!/bin/bash
+# Hexarchy: Enable runit services (replaces systemd systemctl enable calls)
+# This script runs during installation on Artix Linux (runit)
+
+set -euo pipefail
+
+SV_DIR="/etc/runit/sv"
+RUNLEVEL="/run/runit/service"
+
+# Ensure runit service directory exists
+mkdir -p "$SV_DIR"
+mkdir -p "$RUNLEVEL"
+
+# Copy hexarchy's runit services to the system
+cp -rn "$HEXARCHY_PATH/sv/"* "$SV_DIR/" 2>/dev/null || true
+
+enable_service() {
+  local svc="$1"
+  if [ -d "$SV_DIR/$svc" ]; then
+    ln -sf "$SV_DIR/$svc" "$RUNLEVEL/$svc"
+    echo "[hexarchy] Enabled service: $svc"
+  else
+    echo "[hexarchy] WARNING: Service directory not found: $SV_DIR/$svc" >&2
+  fi
+}
+
+# Core services (order matters for dependencies)
+enable_service dbus
+enable_service elogind
+enable_service polkitd
+enable_service rsyslog
+enable_service networkmanager
+enable_service sddm
+enable_service avahi-daemon
+enable_service cupsd
+enable_service cups-browsed
+enable_service docker
+enable_service earlyoom
+enable_service sshd
+enable_service ufw
+enable_service cronie
+
+echo "[hexarchy] All services enabled. Reboot to start them."

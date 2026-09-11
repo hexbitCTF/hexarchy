@@ -13,14 +13,14 @@ assert(tray.itemNamed({ tooltipTitle: 'LocalSend' }, 'localsend'), 'tray matches
 assert(!tray.itemNamed({ id: 'nextcloud' }, 'dropbox'), 'tray ignores items named for something else')
 
 const layout = {
-  left: [{ id: 'omarchy.menu' }],
+  left: [{ id: 'hexarchy.menu' }],
   center: [],
-  right: [{ id: 'omarchy.dropbox' }, { id: 'omarchy.tray' }]
+  right: [{ id: 'hexarchy.dropbox' }, { id: 'hexarchy.tray' }]
 }
 
-assert(tray.layoutHasWidget(layout, 'omarchy.dropbox'), 'tray finds dedicated dropbox widget in layout')
-assert(tray.ownedByOmarchy({ id: 'dropbox' }, layout), 'tray suppresses dropbox when dedicated widget is in bar')
-assert(!tray.ownedByOmarchy({ id: 'dropbox' }, { left: [], center: [], right: [] }), 'tray keeps dropbox when dedicated widget is absent')
-assert(tray.ownedByOmarchy({ id: 'qlBCprNUqU', title: 'localsend' }, { left: [], center: [], right: [] }), 'tray suppresses localsend regardless of layout')
-assert(!tray.ownedByOmarchy({ id: 'nextcloud' }, layout), 'tray keeps unrelated tray items')
+assert(tray.layoutHasWidget(layout, 'hexarchy.dropbox'), 'tray finds dedicated dropbox widget in layout')
+assert(tray.ownedByHexarchy({ id: 'dropbox' }, layout), 'tray suppresses dropbox when dedicated widget is in bar')
+assert(!tray.ownedByHexarchy({ id: 'dropbox' }, { left: [], center: [], right: [] }), 'tray keeps dropbox when dedicated widget is absent')
+assert(tray.ownedByHexarchy({ id: 'qlBCprNUqU', title: 'localsend' }, { left: [], center: [], right: [] }), 'tray suppresses localsend regardless of layout')
+assert(!tray.ownedByHexarchy({ id: 'nextcloud' }, layout), 'tray keeps unrelated tray items')
 JS

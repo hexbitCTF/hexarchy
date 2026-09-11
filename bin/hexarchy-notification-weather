@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hexarchy:summary=Toggle the current weather panel
+
+hexarchy-shell shell toggle hexarchy.weather

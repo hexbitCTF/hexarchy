@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# hexarchy:summary=Restore the preinstalled Hexarchy applications (web apps, TUIs, and selected packages).
+# hexarchy:requires-sudo=true
+
+if gum confirm "Are you sure you want to restore all preinstalled web apps, TUI wrappers, and desktop applications?"; then
+  echo -e "Restoring preinstalled Hexarchy applications...\n"
+
+  # Recreates the shipped .desktop launchers (web apps and TUIs) and the mise stubs
+  # that back claude, gh, opencode, and the rest of the agents
+  hexarchy-refresh-applications
+
+  # Mirrors the list in hexarchy-remove-preinstalls; both track hexarchy-base.packages
+  if ! hexarchy-pkg-add \
+    aether \
+    cliamp \
+    libreoffice-fresh \
+    xournalpp \
+    pinta \
+    obsidian \
+    obs-studio \
+    kdenlive \
+    moonlight-qt \
+    lazydocker \
+    omacut \
+    omacalc \
+    omawrite; then
+    echo -e "\nPreinstalls are still marked as removed. Fix the errors above and try again."
+    exit 1
+  fi
+
+  # Last, so a failure above leaves the opt-out intact rather than restoring
+  # keybindings for apps that never came back
+  rm -f ~/.local/state/hexarchy/preinstalls-removed
+  hyprctl reload
+fi

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# hexarchy:summary=Refresh the current theme from its templates.
+
+THEME_NAME_PATH="$HOME/.local/state/hexarchy/current/theme.name"
+
+if [[ -f $THEME_NAME_PATH ]]; then
+  HEXARCHY_THEME_SKIP_BACKGROUND=1 hexarchy-theme-set "$(cat $THEME_NAME_PATH)"
+fi

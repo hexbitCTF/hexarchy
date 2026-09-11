@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# hexarchy:summary=Open Voxtype configuration
+
+set -e
+
+hexarchy-launch-floating-terminal-with-presentation "voxtype configure"
+hexarchy-restart-shell

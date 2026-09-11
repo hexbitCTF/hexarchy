@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# hexarchy:summary=Overwrite the user config for hyprsunset with the Hexarchy default and restart the service.
+
+hexarchy-refresh-config hypr/hyprsunset.conf
+hexarchy-restart-hyprsunset

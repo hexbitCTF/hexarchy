@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# hexarchy:summary=Toggle suspend availability in the system menu
+
+hexarchy-toggle suspend-off
+
+if hexarchy-toggle-enabled suspend-off; then
+  hexarchy-notification-send -g 󰒲 "Suspend removed from system menu"
+else
+  hexarchy-notification-send -g 󰒲 "Suspend now available in system menu"
+fi

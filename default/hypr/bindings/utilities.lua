@@ -1,48 +1,47 @@
-o.bind("SUPER + SPACE", "Omarchy menu", "omarchy-menu toggle")
-o.bind("SUPER + ALT + SPACE", "Apps menu", "omarchy-menu toggle apps")
-o.bind("SUPER + CTRL + E", "Emojis", "omarchy-shell shell toggle omarchy.emojis")
-o.bind("SUPER + CTRL + C", "Capture menu", "omarchy-menu toggle capture")
-o.bind("SUPER + CTRL + O", "Toggle menu", "omarchy-menu toggle toggle")
-o.bind("SUPER + CTRL + H", "Hardware menu", "omarchy-menu toggle hardware")
-o.bind("SUPER + SHIFT + code:201", "Omarchy menu", "omarchy-menu toggle root")
-o.bind("SUPER + ESCAPE", "System menu", "omarchy-menu toggle system")
-o.bind("XF86PowerOff", "Power menu", "omarchy-menu toggle system", { locked = true })
-o.bind("SUPER + K", "Keybindings", "omarchy-menu-keybindings")
-o.bind("SUPER + ALT + K", "Tmux keybindings", "omarchy-menu-tmux-keybindings")
-o.bind("SUPER + CTRL + K", "Herdr keybindings", "omarchy-menu-herdr-keybindings")
+o.bind("SUPER + SPACE", "Hexarchy menu", "hexarchy-menu toggle")
+o.bind("SUPER + ALT + SPACE", "Apps menu", "hexarchy-menu toggle apps")
+o.bind("SUPER + CTRL + E", "Emojis", "hexarchy-shell shell toggle hexarchy.emojis")
+o.bind("SUPER + CTRL + C", "Capture menu", "hexarchy-menu toggle capture")
+o.bind("SUPER + CTRL + O", "Toggle menu", "hexarchy-menu toggle toggle")
+o.bind("SUPER + CTRL + H", "Hardware menu", "hexarchy-menu toggle hardware")
+o.bind("SUPER + SHIFT + code:201", "Hexarchy menu", "hexarchy-menu toggle root")
+o.bind("SUPER + ESCAPE", "System menu", "hexarchy-menu toggle system")
+o.bind("XF86PowerOff", "Power menu", "hexarchy-menu toggle system", { locked = true })
+o.bind("SUPER + K", "Keybindings", "hexarchy-menu-keybindings")
+o.bind("SUPER + ALT + K", "Tmux keybindings", "hexarchy-menu-tmux-keybindings")
+o.bind("SUPER + CTRL + K", "Herdr keybindings", "hexarchy-menu-herdr-keybindings")
 o.bind("SUPER + CTRL + Q", "Calculator", "omacalc")
 o.bind("XF86Calculator", "Calculator", "omacalc")
 
 o.bind_toggle("SUPER + SHIFT + SPACE", "Toggle top bar", "bar")
-o.bind("SUPER + CTRL + SPACE", "Background switcher", "omarchy-menu toggle background")
-o.bind("SUPER + SHIFT + CTRL + SPACE", "Theme menu", "omarchy-menu toggle theme")
-o.bind("SUPER + BACKSPACE", "Toggle window transparency", "omarchy-hyprland-window-transparency-toggle")
-o.bind("SUPER + SHIFT + BACKSPACE", "Toggle window gaps", "omarchy-hyprland-window-gaps-toggle")
-o.bind("SUPER + CTRL + BACKSPACE", "Toggle single-window square aspect", "omarchy-hyprland-window-single-square-aspect-toggle")
-o.bind_toggle("SUPER + CTRL + ALT + F", "Toggle full screen desktop", "fullscreen-desktop")
+o.bind("SUPER + CTRL + SPACE", "Background switcher", "hexarchy-menu toggle background")
+o.bind("SUPER + SHIFT + CTRL + SPACE", "Theme menu", "hexarchy-menu toggle theme")
+o.bind("SUPER + BACKSPACE", "Toggle window transparency", "hexarchy-hyprland-window-transparency-toggle")
+o.bind("SUPER + SHIFT + BACKSPACE", "Toggle window gaps", "hexarchy-hyprland-window-gaps-toggle")
+o.bind("SUPER + CTRL + BACKSPACE", "Toggle single-window square aspect", "hexarchy-hyprland-window-single-square-aspect-toggle")
 
 -- xkbcommon names the comma keysym "comma"; the upper-case "COMMA" does not match.
-o.bind("SUPER + comma", "Dismiss last notification", "omarchy-shell notifications dismissOne")
-o.bind("SUPER + SHIFT + comma", "Dismiss all notifications", "omarchy-shell notifications dismissAll")
+o.bind("SUPER + comma", "Dismiss last notification", "hexarchy-shell notifications dismissOne")
+o.bind("SUPER + SHIFT + comma", "Dismiss all notifications", "hexarchy-shell notifications dismissAll")
 o.bind_toggle("SUPER + CTRL + comma", "Toggle silencing notifications", "notification-silencing")
-o.bind("SUPER + ALT + comma", "Invoke last notification", "omarchy-shell notifications invokeLast")
-o.bind("SUPER + SHIFT + ALT + comma", "Open notification history", "omarchy-shell notifications showHistory")
+o.bind("SUPER + ALT + comma", "Invoke last notification", "hexarchy-shell notifications invokeLast")
+o.bind("SUPER + SHIFT + ALT + comma", "Open notification history", "hexarchy-shell notifications showHistory")
 
 o.bind_toggle("SUPER + CTRL + I", "Toggle locking on idle", "idle")
 o.bind_toggle("SUPER + CTRL + N", "Toggle nightlight", "nightlight")
-o.bind("SUPER + CTRL + Delete", "Toggle laptop display", "omarchy-hyprland-monitor-internal toggle")
-o.bind("SUPER + CTRL + ALT + Delete", "Toggle laptop display mirroring", "omarchy-hyprland-monitor-internal-mirror toggle")
-o.bind("switch:on:Lid Switch", nil, "omarchy-system-lid-close", { locked = true })
-o.bind("switch:off:Lid Switch", nil, "omarchy-hyprland-monitor-clamshell", { locked = true })
+o.bind("SUPER + CTRL + Delete", "Toggle laptop display", "hexarchy-hyprland-monitor-internal toggle")
+o.bind("SUPER + CTRL + ALT + Delete", "Toggle laptop display mirroring", "hexarchy-hyprland-monitor-internal-mirror toggle")
+o.bind("switch:on:Lid Switch", nil, "hexarchy-system-lid-close", { locked = true })
+o.bind("switch:off:Lid Switch", nil, "hexarchy-hyprland-monitor-clamshell", { locked = true })
 
-o.bind("PRINT", "Screenshot", "omarchy-capture-screenshot")
-o.bind("ALT + PRINT", "Screenrecording", "omarchy-capture-screenrecording --stop-recording || omarchy-menu toggle trigger.capture.screenrecord")
-o.bind("SUPER + ALT + code:34", "Make webcam overlay smaller", "omarchy-capture-webcam-resize smaller")
-o.bind("SUPER + ALT + code:35", "Make webcam overlay larger", "omarchy-capture-webcam-resize larger")
+o.bind("PRINT", "Screenshot", "hexarchy-capture-screenshot")
+o.bind("ALT + PRINT", "Screenrecording", "hexarchy-capture-screenrecording --stop-recording || hexarchy-menu toggle trigger.capture.screenrecord")
+o.bind("SUPER + ALT + code:34", "Make webcam overlay smaller", "hexarchy-capture-webcam-resize smaller")
+o.bind("SUPER + ALT + code:35", "Make webcam overlay larger", "hexarchy-capture-webcam-resize larger")
 o.bind("SUPER + PRINT", "Color picker", "pkill hyprpicker || hyprpicker -a")
-o.bind("SUPER + CTRL + PRINT", "Extract text (OCR) from screenshot", "omarchy-capture-text")
+o.bind("SUPER + CTRL + PRINT", "Extract text (OCR) from screenshot", "hexarchy-capture-text")
 
--- Keyboard control for the slurp region picker (see omarchy-capture-region).
+-- Keyboard control for the slurp region picker (see hexarchy-capture-region).
 -- The binds live exactly as long as a selection layer is on screen (slurp
 -- opens one per monitor), so they cannot leak or get stuck.
 -- Unbinding by key would take a same-key binding out of the user's own config
@@ -55,15 +54,15 @@ hl.on("layer.opened", function(layer)
     selection_layers = selection_layers + 1
     if selection_layers == 1 then
       selection_binds = {
-        hl.bind("RETURN", hl.dsp.exec_cmd("omarchy-capture-region --take-window"), { description = "Capture highlighted window" }),
-        hl.bind("CTRL + RETURN", hl.dsp.exec_cmd("omarchy-capture-region --take-fullscreen"), { description = "Capture entire screen" }),
-        hl.bind("TAB", hl.dsp.exec_cmd("omarchy-capture-region --select-window next"), { description = "Select next window to capture" }),
-        hl.bind("CTRL + TAB", hl.dsp.exec_cmd("omarchy-capture-region --select-window prev"), { description = "Select previous window to capture" }),
+        hl.bind("RETURN", hl.dsp.exec_cmd("hexarchy-capture-region --take-window"), { description = "Capture highlighted window" }),
+        hl.bind("CTRL + RETURN", hl.dsp.exec_cmd("hexarchy-capture-region --take-fullscreen"), { description = "Capture entire screen" }),
+        hl.bind("TAB", hl.dsp.exec_cmd("hexarchy-capture-region --select-window next"), { description = "Select next window to capture" }),
+        hl.bind("CTRL + TAB", hl.dsp.exec_cmd("hexarchy-capture-region --select-window prev"), { description = "Select previous window to capture" }),
       }
       for _, direction in ipairs({ "left", "right", "up", "down" }) do
         table.insert(
           selection_binds,
-          hl.bind(direction:upper(), hl.dsp.exec_cmd("omarchy-capture-region --select-window " .. direction), { description = "Select window to capture" })
+          hl.bind(direction:upper(), hl.dsp.exec_cmd("hexarchy-capture-region --select-window " .. direction), { description = "Select window to capture" })
         )
       end
     end
@@ -82,25 +81,25 @@ hl.on("layer.closed", function(layer)
   end
 end)
 
-o.bind("SUPER + CTRL + S", "Share", "omarchy-menu toggle share")
+o.bind("SUPER + CTRL + S", "Share", "hexarchy-menu toggle share")
 
-o.bind("SUPER + CTRL + PERIOD", "Transcode", "omarchy-transcode")
+o.bind("SUPER + CTRL + PERIOD", "Transcode", "hexarchy-transcode")
 
-o.bind("SUPER + CTRL + R", "Set reminder", "omarchy-menu toggle reminder-set")
-o.bind("SUPER + CTRL + ALT + R", "Show reminders", "omarchy-reminder show")
-o.bind("SUPER + SHIFT + CTRL + R", "Clear reminders", "omarchy-reminder clear")
+o.bind("SUPER + CTRL + R", "Set reminder", "hexarchy-menu toggle reminder-set")
+o.bind("SUPER + CTRL + ALT + R", "Show reminders", "hexarchy-reminder show")
+o.bind("SUPER + SHIFT + CTRL + R", "Clear reminders", "hexarchy-reminder clear")
 
-o.bind("SUPER + CTRL + ALT + T", "Show time", "omarchy-notification-time")
-o.bind("SUPER + CTRL + ALT + B", "Show battery remaining", "omarchy-notification-battery")
-o.bind("SUPER + CTRL + ALT + W", "Toggle weather", "omarchy-notification-weather")
+o.bind("SUPER + CTRL + ALT + T", "Show time", "hexarchy-notification-time")
+o.bind("SUPER + CTRL + ALT + B", "Show battery remaining", "hexarchy-notification-battery")
+o.bind("SUPER + CTRL + ALT + W", "Toggle weather", "hexarchy-notification-weather")
 
-o.bind("SUPER + SHIFT + CTRL + A", "Agent", "omarchy-agent --pick")
-o.bind("SUPER + CTRL + A", "Audio", "omarchy-shell shell toggle omarchy.audio")
-o.bind("SUPER + CTRL + B", "Bluetooth", "omarchy-shell shell toggle omarchy.bluetooth")
-o.bind("SUPER + CTRL + D", "Display", "omarchy-shell shell toggle omarchy.monitor")
-o.bind("SUPER + CTRL + ALT + D", "Calendar", "omarchy-shell shell toggle omarchy.clock")
-o.bind("SUPER + CTRL + W", "Network", "omarchy-shell shell toggle omarchy.network")
-o.bind("SUPER + CTRL + P", "Power", "omarchy-shell shell toggle omarchy.power")
+o.bind("SUPER + SHIFT + CTRL + A", "Agent", "hexarchy-agent --pick")
+o.bind("SUPER + CTRL + A", "Audio", "hexarchy-shell shell toggle hexarchy.audio")
+o.bind("SUPER + CTRL + B", "Bluetooth", "hexarchy-shell shell toggle hexarchy.bluetooth")
+o.bind("SUPER + CTRL + D", "Display", "hexarchy-shell shell toggle hexarchy.monitor")
+o.bind("SUPER + CTRL + ALT + D", "Calendar", "hexarchy-shell shell toggle hexarchy.clock")
+o.bind("SUPER + CTRL + W", "Network", "hexarchy-shell shell toggle hexarchy.network")
+o.bind("SUPER + CTRL + P", "Power", "hexarchy-shell shell toggle hexarchy.power")
 o.bind("SUPER + CTRL + T", "Activity", { tui = "btop" })
 
 -- The letters above name a panel; the numbers count them. 1 is the leftmost
@@ -111,7 +110,7 @@ for panel = 1, 9 do
   o.bind(
     "SUPER + CTRL + code:" .. tostring(panel + 9),
     "Bar panel " .. panel,
-    "omarchy-shell -q shell togglePanelAt right " .. panel
+    "hexarchy-shell -q shell togglePanelAt right " .. panel
   )
 end
 
@@ -124,4 +123,4 @@ o.bind("SUPER + CTRL + ALT + Z", "Reset zoom", function()
   hl.config({ cursor = { zoom_factor = 1 } })
 end)
 
-o.bind("SUPER + CTRL + L", "Lock system", "omarchy-system-lock")
+o.bind("SUPER + CTRL + L", "Lock system", "hexarchy-system-lock")

@@ -14,7 +14,7 @@ You can quickly access the date and time, battery status, and current weather us
 
  ![notice-weather](images/notice-weather.webp)
 
-The location is detected from your IP address, which is usually close enough, but not always. You can pin it down with `omarchy weather location --set Malibu`, or be exact about it by adding coordinates: `omarchy weather location --set Malibu 34.0259,-118.7798`. Run `omarchy weather location` on its own to see where it thinks you are, and `--clear` to go back to auto-detection.
+The location is detected from your IP address, which is usually close enough, but not always. You can pin it down with `hexarchy weather location --set Malibu`, or be exact about it by adding coordinates: `hexarchy weather location --set Malibu 34.0259,-118.7798`. Run `hexarchy weather location` on its own to see where it thinks you are, and `--clear` to go back to auto-detection.
 
 ### Battery
 

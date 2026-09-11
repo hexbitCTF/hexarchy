@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# hexarchy:summary=Restart system time synchronization
+# hexarchy:requires-sudo=true
+
+echo "Updating time..."
+sudo sv restart systemd-timesyncd

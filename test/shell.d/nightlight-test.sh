@@ -20,7 +20,7 @@ trap 'rm -rf "$TMPDIR"' EXIT
 
 mkdir -p "$TMPDIR/bin"
 STATE="$TMPDIR/hyprsunset-temp"
-SHELL_LOG="$TMPDIR/omarchy-shell-log"
+SHELL_LOG="$TMPDIR/hexarchy-shell-log"
 
 cat >"$TMPDIR/bin/hyprctl" <<'SH'
 #!/bin/bash
@@ -42,18 +42,18 @@ cat >"$TMPDIR/bin/pgrep" <<'SH'
 exit 0
 SH
 
-cat >"$TMPDIR/bin/omarchy-shell" <<'SH'
+cat >"$TMPDIR/bin/hexarchy-shell" <<'SH'
 #!/bin/bash
-printf '%s\n' "$*" >>"$OMARCHY_SHELL_LOG"
+printf '%s\n' "$*" >>"$HEXARCHY_SHELL_LOG"
 SH
 
-chmod +x "$TMPDIR/bin/hyprctl" "$TMPDIR/bin/pgrep" "$TMPDIR/bin/omarchy-shell"
+chmod +x "$TMPDIR/bin/hyprctl" "$TMPDIR/bin/pgrep" "$TMPDIR/bin/hexarchy-shell"
 
 nightlight_cli() {
   PATH="$TMPDIR/bin:$PATH" \
   HYPRSUNSET_STATE="$STATE" \
-  OMARCHY_SHELL_LOG="$SHELL_LOG" \
-    "$ROOT/bin/omarchy-toggle-nightlight" "$@"
+  HEXARCHY_SHELL_LOG="$SHELL_LOG" \
+    "$ROOT/bin/hexarchy-toggle-nightlight" "$@"
 }
 
 nightlight_status() {
@@ -86,7 +86,7 @@ nightlight_cli >/dev/null
 [[ $(<"$STATE") == 6500 ]] || fail "nightlight toggle restores daylight from night light"
 pass "nightlight toggle restores daylight from night light"
 
-if rg -q 'omarchy.indicators' "$ROOT/bin/omarchy-toggle-nightlight"; then
+if rg -q 'hexarchy.indicators' "$ROOT/bin/hexarchy-toggle-nightlight"; then
   fail "nightlight toggle leaves indicator refresh to the nightlight service"
 fi
 pass "nightlight toggle leaves indicator refresh to the nightlight service"

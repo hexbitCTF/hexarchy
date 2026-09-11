@@ -1,5 +1,5 @@
 -- Keep only your personal input overrides here. Uncommented settings below
--- replace Omarchy's defaults.
+-- replace Hexarchy's defaults.
 
 -- Keyboard layout and options.
 -- See https://wiki.hypr.land/Configuring/Basics/Variables/#input
@@ -45,8 +45,7 @@
 -- })
 
 -- App-specific touchpad scroll speeds.
--- o.window("(Alacritty|kitty)", { scroll_touchpad = 1.5 })
--- o.window("foot", { scroll_touchpad = 2.0 })
+-- o.window("(Alacritty|kitty|foot)", { scroll_touchpad = 1.5 })
 -- o.window("com.mitchellh.ghostty", { scroll_touchpad = 0.2 })
 
 -- Enable touchpad gestures for changing workspaces.

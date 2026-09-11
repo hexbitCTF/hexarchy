@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# hexarchy:summary=Create a new Hexarchy migration in the current source tree.
+# hexarchy:args=[--no-edit]
+
+set -euo pipefail
+
+no_edit=0
+
+while (($#)); do
+  case "$1" in
+    --no-edit)
+      no_edit=1
+      shift
+      ;;
+    system|user)
+      echo "hexarchy-dev-add-migration: migration scopes are no longer used; creating a regular migration." >&2
+      shift
+      ;;
+    -h|--help)
+      echo "Usage: hexarchy-dev-add-migration [--no-edit]"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      echo "Usage: hexarchy-dev-add-migration [--no-edit]" >&2
+      exit 1
+      ;;
+  esac
+done
+
+cd "${HEXARCHY_PATH:-$(pwd)}"
+mkdir -p migrations
+migration_file="migrations/$(git log -1 --format=%cd --date=unix).sh"
+touch "$migration_file"
+
+if (( ! no_edit )); then
+  nvim "$migration_file"
+fi
+
+printf '%s\n' "$PWD/$migration_file"

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hexarchy:summary=Show the current battery status notification
+
+hexarchy-notification-send -g 󰁹 -u low "$(hexarchy-battery-status)"

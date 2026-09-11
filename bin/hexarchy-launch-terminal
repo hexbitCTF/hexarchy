@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# hexarchy:summary=Launch a terminal in the active terminal's current directory
+# hexarchy:args=[command...]
+
+exec setsid uwsm-app -- xdg-terminal-exec --dir="$(hexarchy-cmd-terminal-cwd)" "$@"

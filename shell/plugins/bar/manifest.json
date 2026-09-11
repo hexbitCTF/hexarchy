@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "omarchy.bar",
+  "id": "hexarchy.bar",
   "name": "Bar",
   "version": "1.0.0",
-  "author": "Omarchy",
+  "author": "Hexarchy",
   "description": "Status bar with widgets",
   "kinds": [
     "bar"

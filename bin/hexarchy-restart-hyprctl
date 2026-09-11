@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hexarchy:summary=Reload hyprland configuration (used by the Hexarchy theme switching).
+
+hyprctl reload >/dev/null

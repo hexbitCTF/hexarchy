@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# hexarchy:summary=Compatibility wrapper for hexarchy-migrate-notify.
+# hexarchy:hidden=true
+
+exec hexarchy-migrate-notify "$@"

@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# hexarchy:summary=Diagnose a crashed process with the default coding agent
+# hexarchy:args=<pid> [comm] [exe] [signal]
+# hexarchy:examples=hexarchy agent crash 1516893
+
+# Clicked from a "Process crashed:" notification, or run by hand against any PID.
+# The method lives in the diagnose-crash skill so it is edited in one place and
+# works with whichever agent is default; this only gathers the facts and points
+# at it.
+
+set -euo pipefail
+
+pid=${1:?usage: hexarchy-agent-crash <pid> [comm] [exe] [signal]}
+
+if [[ ! $pid =~ ^[0-9]+$ ]]; then
+  echo "Not a PID: $pid" >&2
+  echo "Usage: hexarchy agent crash <pid>" >&2
+  exit 1
+fi
+
+comm=${2:-unknown}
+exe=${3:-unknown}
+signal=${4:-unknown}
+
+skill="$HEXARCHY_PATH/default/agents/skills/diagnose-crash/SKILL.md"
+
+# Look up the crash timestamp from core dump files. A rotated-away core only
+# costs the timestamp, so failure is tolerated.
+when=""
+for _core in /var/lib/systemd/coredump/core.*."$pid".*; do
+  [[ -f $_core ]] || continue
+  when=$(date -d @"$(stat -c %Y "$_core")" '+%Y-%m-%d %H:%M:%S' 2>/dev/null) || true
+  break
+done
+when=${when:-unknown}
+
+prompt=$(
+  cat <<PROMPT
+A process crashed on this Hexarchy machine and I want to know why.
+
+What was recorded:
+  process:  $comm
+  PID:      $pid
+  binary:   $exe
+  signal:   $signal
+  time:     $when
+
+Use the diagnose-crash skill: it covers how to investigate, what to report, and
+when a crash is worth reporting upstream to Hexarchy. If your harness has no skill
+mechanism, read the skill files directly and follow them instead:
+
+  $skill
+PROMPT
+)
+
+exec hexarchy-agent --prompt "$prompt"

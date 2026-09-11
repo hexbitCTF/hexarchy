@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# hexarchy:summary=Shut down after closing application windows
+# hexarchy:examples=hexarchy shutdown | hexarchy system shutdown
+# hexarchy:aliases=hexarchy shutdown
+
+# Schedule the shutdown so closing the terminal cannot terminate it before it runs.
+( sleep 2; loginctl poweroff ) &
+
+hexarchy-osd -i shutdown -m "Shutting down" -d 5000
+
+hexarchy-state clear re*-required
+
+# Now close all windows
+hexarchy-hyprland-window-close-all
+sleep 1 # Allow apps like Chrome to shutdown correctly

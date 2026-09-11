@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# hexarchy:summary=Ensure default application launchers and mise wrappers are installed.
+
+# Copy .desktop declarations
+mkdir -p ~/.local/share/applications
+cp "$HEXARCHY_PATH"/applications/*.desktop ~/.local/share/applications/
+
+if hexarchy-cmd-present alacritty; then
+  cp "$HEXARCHY_PATH/default/alacritty/Alacritty.desktop" ~/.local/share/applications/
+fi
+
+if [[ -f "$HEXARCHY_PATH/install/user/mise.sh" ]]; then
+  bash "$HEXARCHY_PATH/install/user/mise.sh"
+fi
+
+update-desktop-database ~/.local/share/applications

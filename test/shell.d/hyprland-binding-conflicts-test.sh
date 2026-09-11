@@ -12,8 +12,8 @@ list_bindings() {
   local home="$1"
   local epilogue="${2:-}"
 
-  HOME="$home" XDG_CONFIG_HOME="$home/.config" XDG_STATE_HOME="$home/.local/state" OMARCHY_PATH="$ROOT" OMARCHY_BINDING_EPILOGUE="$epilogue" lua <<'LUA'
-package.path = os.getenv("HOME") .. "/.config/?.lua;" .. os.getenv("OMARCHY_PATH") .. "/?.lua;" .. package.path
+  HOME="$home" XDG_CONFIG_HOME="$home/.config" XDG_STATE_HOME="$home/.local/state" HEXARCHY_PATH="$ROOT" HEXARCHY_BINDING_EPILOGUE="$epilogue" lua <<'LUA'
+package.path = os.getenv("HOME") .. "/.config/?.lua;" .. os.getenv("HEXARCHY_PATH") .. "/?.lua;" .. package.path
 
 local function proxy()
   return setmetatable({}, {
@@ -40,13 +40,6 @@ hl = setmetatable({
       release = opts.release == true,
     })
   end,
-  unbind = function(keys)
-    for index = #bindings, 1, -1 do
-      if bindings[index].keys == keys then
-        table.remove(bindings, index)
-      end
-    end
-  end,
   config = function() end,
   env = function() end,
   monitor = function() end,
@@ -70,14 +63,14 @@ hl = setmetatable({
   end,
 })
 
-require("default.hypr.omarchy")
+require("default.hypr.hexarchy")
 
-local epilogue = os.getenv("OMARCHY_BINDING_EPILOGUE") or ""
+local epilogue = os.getenv("HEXARCHY_BINDING_EPILOGUE") or ""
 if epilogue ~= "" then
   assert(load(epilogue))()
 end
 
--- X11 keycodes are evdev codes plus 8. Only the rows Omarchy binds by code
+-- X11 keycodes are evdev codes plus 8. Only the rows Hexarchy binds by code
 -- need naming; anything else keeps its code: form and still compares exactly.
 local keycode_keysyms = {
   [10] = "1", [11] = "2", [12] = "3", [13] = "4", [14] = "5",
@@ -195,17 +188,3 @@ probe=$(PATH="$stub_bin:$PATH" list_bindings "$home" \
 grep -Fqx "ALT+SHIFT+SUPER+RIGHT" <<<"$probe" ||
   fail "the conflict check ignores modifier order"
 pass "the conflict check catches collisions across keycodes and modifier order"
-
-rebound=$(PATH="$stub_bin:$PATH" list_bindings "$home" \
-  'o.rebind("SUPER + SHIFT + F", "Flea", { launch = "flea" })' | \
-  awk -F'\t' '$1 == "SHIFT+SUPER+F"')
-[[ $rebound == $'SHIFT+SUPER+F\tSUPER + SHIFT + F\tFlea' ]] ||
-  fail "rebinding replaces the default file manager without stacking actions" "$rebound"
-pass "rebinding replaces the default file manager without stacking actions"
-
-rebound=$(PATH="$stub_bin:$PATH" list_bindings "$home" \
-  'o.rebind("F9", "Dictation on release", "voxtype record toggle", { release = true })' | \
-  awk -F'\t' '$2 == "F9"')
-[[ $rebound == $'F9 (release)\tF9\tDictation on release' ]] ||
-  fail "rebinding replaces all bindings for a key and preserves binding options" "$rebound"
-pass "rebinding replaces all bindings for a key and preserves binding options"

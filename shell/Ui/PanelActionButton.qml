@@ -69,7 +69,6 @@ BorderSurface {
   Behavior on color { ColorAnimation { duration: 60 } }
 
   Text {
-    textFormat: Text.PlainText
     anchors.centerIn: parent
     text: root.iconText
     color: root.enabled

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# hexarchy:summary=Launch or focus on a given web app identified by the window-pattern.
+# hexarchy:args=<window-pattern> <url-and-flags...>
+
+if (($# == 0)); then
+  echo "Usage: hexarchy-launch-or-focus-webapp [window-pattern] [url-and-flags...]"
+  exit 1
+fi
+
+WINDOW_PATTERN="$1"
+shift
+LAUNCH_COMMAND="hexarchy-launch-webapp $@"
+
+exec hexarchy-launch-or-focus "$WINDOW_PATTERN" "$LAUNCH_COMMAND"

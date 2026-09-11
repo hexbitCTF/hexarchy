@@ -1,0 +1,214 @@
+# Hexarchy core package list for Artix Linux (runit)
+# pacstrapped by the ISO. Replaces Omarchy's systemd-dependent package set.
+
+# ── Core system ──────────────────────────────────────────────
+base
+base-devel
+runit
+runit-rc
+elogind
+elogind-runit
+dbus
+dbus-runit
+eudev
+eudev-runit
+
+# ── Display & compositor ─────────────────────────────────────
+hyprland
+hyprland-guiutils
+hyprland-preview-share-picker
+hyprpicker
+hyprsunset
+quickshell
+sddm
+sddm-runit
+grim
+slurp
+wl-clipboard
+wtype
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+qt6-wayland
+
+# ── Audio ────────────────────────────────────────────────────
+pipewire
+pipewire-alsa
+pipewire-jack
+pipewire-pulse
+wireplumber
+pamixer
+playerctl
+
+# ── Networking ───────────────────────────────────────────────
+networkmanager
+networkmanager-runit
+bluez
+bluez-tools
+bluez-utils
+avahi
+avahi-runit
+nss-mdns
+inetutils
+whois
+
+# ── Firewall ─────────────────────────────────────────────────
+ufw
+
+# ── Printing ─────────────────────────────────────────────────
+cups
+cups-runit
+cups-browsed
+cups-filters
+cups-pdf
+
+# ── System services ──────────────────────────────────────────
+rsyslog
+cronie
+openssh
+openssh-runit
+dnscrypt-proxy
+dnscrypt-proxy-runit
+earlyoom
+polkit
+polkit-runit
+power-profiles-daemon
+power-profiles-daemon-runit
+elogind
+
+# ── Docker ───────────────────────────────────────────────────
+docker
+docker-buildx
+docker-compose
+ufw-docker
+
+# ── Terminal & shell ─────────────────────────────────────────
+foot
+nvim
+starship
+fzf
+eza
+bat
+ripgrep
+fd
+zoxide
+tldr
+tmux
+less
+tree-sitter-cli
+gum
+fastfetch
+inxi
+
+# ── Development tools ────────────────────────────────────────
+git
+base-devel
+clang
+llvm
+ruby
+rust
+mise
+lazygit
+lazydocker
+github-cli
+
+# ── File management ──────────────────────────────────────────
+nautilus
+nautilus-python
+gvfs-mtp
+gvfs-nfs
+gvfs-smb
+sushi
+gnome-disk-utility
+
+# ── Fonts ────────────────────────────────────────────────────
+noto-fonts
+noto-fonts-cjk
+noto-fonts-emoji
+ttf-jetbrains-mono-nerd-basic
+ttf-ia-writer
+woff2-font-awesome
+fontconfig
+
+# ── Theming ──────────────────────────────────────────────────
+gnome-themes-extra
+kvantum-qt5
+yaru-icon-theme
+
+# ── Media ────────────────────────────────────────────────────
+mpv
+mpv-mpris
+imv
+evince
+obs-studio
+gpu-screen-recorder
+ffmpegthumbnailer
+imagemagick
+pinta
+xournalpp
+
+# ── Browsers ─────────────────────────────────────────────────
+chromium
+
+# ── Productivity ─────────────────────────────────────────────
+libreoffice-fresh
+obsidian
+signal-desktop
+localsend
+spotify
+
+# ── AI tools ─────────────────────────────────────────────────
+claude-code
+aether
+impala
+
+# ── Input method ─────────────────────────────────────────────
+fcitx5
+fcitx5-gtk
+fcitx5-qt
+
+# ── System utilities ─────────────────────────────────────────
+dosfstools
+exfatprogs
+plocate
+bash-completion
+pacman-contrib
+expac
+satty
+libsecret
+socat
+jq
+xmlstarlet
+qrencode
+zbar
+libyaml
+libqalculate
+tzupdate
+
+# ── Hardware support ─────────────────────────────────────────
+brightnessctl
+bolt
+sof-firmware
+wireless-regdb
+linux-firmware
+ddcutil
+
+# ── Virtualization ───────────────────────────────────────────
+qemu-user-static-binfmt
+
+# ── AUR helper ───────────────────────────────────────────────
+yay
+
+# ── Packages NOT installed (systemd replacements handled by runit) ──
+# plymouth          - dropped, systemd-coupled boot splash
+# zram-generator     - dropped, use zramen
+# systemd-oomd       - dropped, use earlyoom
+# systemd-resolved   - dropped, use /etc/resolv.conf or dnscrypt-proxy
+# kernel-modules-hook - dropped, use cronie + custom script
+# swaybg             - dropped, handled by Quickshell
+# mako               - dropped, handled by Quickshell
+# swayosd            - dropped, handled by Quickshell
+# hypridle           - dropped, handled by Quickshell
+# hyprlock           - dropped, handled by Quickshell
+# walker             - dropped, handled by Quickshell
+# waybar             - dropped, handled by Quickshell
+# polkit-gnome       - dropped, using polkitd directly

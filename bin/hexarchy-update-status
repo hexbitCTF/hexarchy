@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# hexarchy:summary=Refresh the shell update status
+# hexarchy:hidden=true
+
+set -e
+
+if hexarchy-update-available >/dev/null; then
+  hexarchy-shell -q hexarchy.system-update refresh
+else
+  hexarchy-shell -q hexarchy.system-update clear
+fi

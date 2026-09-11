@@ -8,7 +8,7 @@ QtObject {
   id: registry
 
   property string home: Quickshell.env("HOME")
-  property string pluginsDir: home + "/.config/omarchy/plugins"
+  property string pluginsDir: home + "/.config/hexarchy/plugins"
 
   // Set by shell.qml at startup so we can also scan bundled first-party plugins.
   property string firstPartyDir: ""
@@ -20,7 +20,7 @@ QtObject {
   property var shellConfigProvider: null
   property var shellConfigMutator: null
 
-  // { pluginId: manifest } — manifests have source/trust metadata stamped in.
+  // { pluginId: manifest } — manifests have __sourceDir and __isFirstParty stamped in.
   property var installedPlugins: ({})
   property int registryRevision: 0
   property bool scanning: false
@@ -78,7 +78,8 @@ QtObject {
       }
     }
     // Every entry point must be a relative path inside the plugin's source
-    // directory. Reject the whole manifest if an entry point escapes it.
+    // directory. Reject the whole manifest if anything looks like an attempt
+    // to escape the plugin's sandbox.
     for (var key in manifest.entryPoints) {
       if (!isSafeEntryPoint(manifest.entryPoints[key])) {
         console.warn("PluginRegistry: unsafe entryPoint '" + key + "'='"
@@ -87,32 +88,6 @@ QtObject {
       }
     }
     return manifest
-  }
-
-  function trustedCapabilities(manifest) {
-    if (!manifest || !manifest.__isFirstParty) return []
-    var metadata = Util.isPlainObject(manifest.omarchy) ? manifest.omarchy : null
-    var declared = metadata && Array.isArray(metadata.capabilities) ? metadata.capabilities : []
-    var out = []
-    for (var i = 0; i < declared.length; i++) {
-      var capability = String(declared[i] || "")
-      if (capability && out.indexOf(capability) === -1) out.push(capability)
-    }
-    return out
-  }
-
-  function stampHostCapabilities(firstParty, thirdParty) {
-    for (var firstPartyId in firstParty)
-      firstParty[firstPartyId].__hostCapabilities = trustedCapabilities(firstParty[firstPartyId])
-
-    for (var thirdPartyId in thirdParty) {
-      var manifest = thirdParty[thirdPartyId]
-      var metadata = manifest && Util.isPlainObject(manifest.omarchy) ? manifest.omarchy : null
-      var clonedFrom = metadata ? String(metadata.clonedFrom || "") : ""
-      var source = clonedFrom ? firstParty[clonedFrom] : null
-      manifest.__hostCapabilities = source && Array.isArray(source.__hostCapabilities)
-        ? source.__hostCapabilities.slice() : []
-    }
   }
 
   function entryPointUrl(manifest, kind) {
@@ -138,12 +113,12 @@ QtObject {
   // overlays, services).
   //
   // Special cases (implicitly always enabled, no shell.json entry needed):
-  //   - the built-in bar option (`omarchy.bar`) is active when `bar.id` is
-  //     missing or set to `omarchy.bar`.
+  //   - the built-in bar option (`hexarchy.bar`) is active when `bar.id` is
+  //     missing or set to `hexarchy.bar`.
   //   - first-party non-bar plugins are shell infrastructure (settings,
   //     image-picker, ...). Requiring users to add them to plugins[] just to
   //     summon them was a footgun: a stock shell.json with `plugins: []` would
-  //     silently make `omarchy launch bar-settings` a no-op. Turning one off
+  //     silently make `hexarchy launch bar-settings` a no-op. Turning one off
   //     is therefore recorded the other way round, in `disabledPlugins[]`.
   function isEnabled(id) {
     var key = String(id)
@@ -154,7 +129,7 @@ QtObject {
         var selectedBar = ""
         if (Util.isPlainObject(config) && Util.isPlainObject(config.bar))
           selectedBar = Util.canonicalWidgetId(String(config.bar.id || ""))
-        if (!selectedBar) selectedBar = "omarchy.bar"
+        if (!selectedBar) selectedBar = "hexarchy.bar"
         return selectedBar === key
       }
       if (isDisabled(config, key)) return false
@@ -174,7 +149,7 @@ QtObject {
     // manifest is the implementation that should receive the call.
     for (var candidate in installedPlugins) {
       var manifest = installedPlugins[candidate]
-      var metadata = manifest && Util.isPlainObject(manifest.omarchy) ? manifest.omarchy : null
+      var metadata = manifest && Util.isPlainObject(manifest.hexarchy) ? manifest.hexarchy : null
       if (metadata && String(metadata.clonedFrom || "") === key && isEnabled(candidate))
         return candidate
     }
@@ -184,7 +159,7 @@ QtObject {
   // A bar widget is on when it sits in the bar, whoever shipped it. That is a
   // different question from isEnabled(), which decides whether the widget's
   // component is loaded at all — a built-in stays loadable so it can be put
-  // back, and so a plugin that is both a widget and a menu (omarchy.menu)
+  // back, and so a plugin that is both a widget and a menu (hexarchy.menu)
   // cannot be locked out of the shell by taking its button off the bar.
   function inBar(id) {
     var config = shellConfigProvider ? shellConfigProvider() : null
@@ -267,7 +242,7 @@ QtObject {
       return { section: section, index: Math.min(requested, config.bar.layout[section].length) }
     }
 
-    var anchors = { left: "omarchy.workspaces", center: "omarchy.weather", right: "omarchy.tray" }
+    var anchors = { left: "hexarchy.workspaces", center: "hexarchy.weather", right: "hexarchy.tray" }
     var anchor = findRelativeBarLocation(config, anchors[section], section)
     return {
       section: section,
@@ -426,8 +401,8 @@ QtObject {
   function activeCloneFor(config, sourceId) {
     for (var candidate in installedPlugins) {
       var candidateManifest = installedPlugins[candidate]
-      var candidateMetadata = candidateManifest && Util.isPlainObject(candidateManifest.omarchy)
-        ? candidateManifest.omarchy : null
+      var candidateMetadata = candidateManifest && Util.isPlainObject(candidateManifest.hexarchy)
+        ? candidateManifest.hexarchy : null
       if (!candidateMetadata || String(candidateMetadata.clonedFrom || "") !== sourceId) continue
       if (Array.isArray(candidateManifest.kinds) && candidateManifest.kinds.indexOf("bar") !== -1) {
         if (Util.canonicalWidgetId(String(config.bar.id || "")) === candidate) return candidate
@@ -443,7 +418,7 @@ QtObject {
     var isBarOption = cloneManifest && Array.isArray(cloneManifest.kinds)
       && cloneManifest.kinds.indexOf("bar") !== -1
     if (isBarOption) {
-      if (sourceId === "omarchy.bar") delete config.bar.id
+      if (sourceId === "hexarchy.bar") delete config.bar.id
       else config.bar.id = sourceId
     } else {
       var cloneLocation = findEntryLocation(config, cloneId)
@@ -487,7 +462,7 @@ QtObject {
     var isBarWidget = manifest && Array.isArray(manifest.kinds) && manifest.kinds.indexOf("bar-widget") !== -1
     var hasNonWidgetKind = manifest && Array.isArray(manifest.kinds)
       && manifest.kinds.some(function(kind) { return kind !== "bar-widget" })
-    var metadata = manifest && Util.isPlainObject(manifest.omarchy) ? manifest.omarchy : null
+    var metadata = manifest && Util.isPlainObject(manifest.hexarchy) ? manifest.hexarchy : null
     var clonedFrom = metadata ? Util.canonicalWidgetId(String(metadata.clonedFrom || "")) : ""
     shellConfigMutator(function(config) {
       ensureConfigShape(config)
@@ -512,7 +487,7 @@ QtObject {
         if (value) {
           config.bar.id = key
         } else if (Util.canonicalWidgetId(String(config.bar.id || "")) === key) {
-          if (clonedFrom && clonedFrom !== "omarchy.bar") config.bar.id = clonedFrom
+          if (clonedFrom && clonedFrom !== "hexarchy.bar") config.bar.id = clonedFrom
           else delete config.bar.id
         }
         return
@@ -619,17 +594,15 @@ QtObject {
     }
     flush()
 
-    stampHostCapabilities(firstParty, thirdParty)
-
     var merged = {}
     for (var fk in firstParty) merged[fk] = firstParty[fk]
     // Third-party plugins never shadow first-party ids. The whole
-    // `omarchy.*` namespace is reserved for built-ins, including bar widgets
+    // `hexarchy.*` namespace is reserved for built-ins, including bar widgets
     // registered outside the manifest-based plugin registry.
     for (var tk in thirdParty) {
-      if (firstParty[tk] || String(tk).indexOf("omarchy.") === 0) {
+      if (firstParty[tk] || String(tk).indexOf("hexarchy.") === 0) {
         console.warn("PluginRegistry: plugin " + tk
-          + " rejected: id is reserved for first-party Omarchy plugins")
+          + " rejected: id is reserved for first-party Hexarchy plugins")
         continue
       }
       merged[tk] = thirdParty[tk]
@@ -695,7 +668,7 @@ QtObject {
     // First-party bar widgets can also carry sibling manifests such as
     // widgets/Clock.manifest.json so multiple widgets can live in one source
     // directory without wrapper folders.
-    // Third-party plugins stay at the top level of ~/.config/omarchy/plugins.
+    // Third-party plugins stay at the top level of ~/.config/hexarchy/plugins.
     var script = ""
       + "emit_manifest() { local kind=\"$1\"; local manifest=\"$2\"; local sub; "
       + "  if [[ ${manifest##*/} == \"manifest.json\" ]]; then sub=\"${manifest%/manifest.json}\"; else sub=\"$(dirname -- \"$manifest\")\"; fi; "

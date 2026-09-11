@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# hexarchy:summary=Apply the current theme keyboard color to supported keyboards
+# hexarchy:hidden=true
+
+hexarchy-theme-set-keyboard-asus-rog
+hexarchy-theme-set-keyboard-f16

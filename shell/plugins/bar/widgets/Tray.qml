@@ -9,7 +9,7 @@ import "TrayModel.js" as TrayModel
 
 BarWidget {
   id: root
-  moduleName: "omarchy.tray"
+  moduleName: "hexarchy.tray"
 
   property bool expanded: false
   property bool managePopupOpen: false
@@ -35,7 +35,7 @@ BarWidget {
 
   // Submenu drill-down state. QsMenuEntry.display() renders a *platform* menu,
   // which Quickshell refuses unless the shell root sets `//@ pragma
-  // UseQApplication` - omarchy's shell.qml does not, so every submenu click was
+  // UseQApplication` - hexarchy's shell.qml does not, so every submenu click was
   // a silent no-op ("Cannot display PlatformMenuEntry as quickshell was not
   // started in QApplication mode" in the shell log) and apps whose whole UI is
   // submenus, e.g. radiotray-ng's station list, were unusable. QsMenuEntry
@@ -159,9 +159,9 @@ BarWidget {
     return "drawer"
   }
 
-  function ownedByOmarchy(item) {
+  function ownedByHexarchy(item) {
     var layout = root.bar && root.bar.layoutConfig ? root.bar.layoutConfig : null
-    return TrayModel.ownedByOmarchy(item, layout)
+    return TrayModel.ownedByHexarchy(item, layout)
   }
 
   function bucket(category) {
@@ -170,7 +170,7 @@ BarWidget {
     for (var i = 0; i < values.length; i++) {
       var item = values[i]
       if (item.status === Status.Passive) continue
-      if (ownedByOmarchy(item)) continue
+      if (ownedByHexarchy(item)) continue
       if (category === "all") {
         result.push(item)
         continue
@@ -182,7 +182,7 @@ BarWidget {
 
   function persistTrayState(pinned, hidden) {
     if (!root.bar || !root.bar.shell || typeof root.bar.shell.updateEntryInline !== "function") return
-    var id = root.moduleName || "omarchy.tray"
+    var id = root.moduleName || "hexarchy.tray"
     root.bar.shell.updateEntryInline(id, { id: id, pinned: pinned, hidden: hidden })
   }
 
@@ -467,7 +467,6 @@ BarWidget {
           }
 
           Text {
-            textFormat: Text.PlainText
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: rowIcon.right
             anchors.leftMargin: Style.space(10)
@@ -578,7 +577,6 @@ BarWidget {
           }
 
           Text {
-            textFormat: Text.PlainText
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             anchors.leftMargin: Style.space(28)
@@ -683,7 +681,6 @@ BarWidget {
               }
 
               Text {
-                textFormat: Text.PlainText
                 visible: !menuRow.modelData.isSeparator && menuRow.modelData.buttonType !== QsMenuButtonType.None
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
@@ -712,7 +709,6 @@ BarWidget {
               }
 
               Text {
-                textFormat: Text.PlainText
                 visible: !menuRow.modelData.isSeparator
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left

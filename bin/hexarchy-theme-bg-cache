@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# hexarchy:summary=Cache background switcher thumbnails for the current theme
+
+theme_name=$(cat "$HOME/.local/state/hexarchy/current/theme.name" 2>/dev/null)
+
+hexarchy-menu-images \
+  --cache-only \
+  "$HOME/.local/state/hexarchy/current/theme/backgrounds" \
+  "$HOME/.config/hexarchy/backgrounds/$theme_name"

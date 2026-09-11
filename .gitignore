@@ -2,3 +2,20 @@
 # Python bytecode (orchestrator)
 __pycache__/
 *.pyc
+
+# Secrets and keys -- never commit credentials
+.env*
+*.pem
+*.key
+*.p12
+*.pfx
+*.ppk
+id_rsa
+id_ed25519
+*.pub
+.ssh/
+known_hosts
+.netrc
+*.credentials
+*_history
+*.log

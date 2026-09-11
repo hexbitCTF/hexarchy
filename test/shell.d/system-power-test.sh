@@ -17,7 +17,7 @@ printf 'systemd-run %s\n' "$*" >>"$CALL_LOG"
 exit 0
 SH
 
-for command in omarchy-state omarchy-hyprland-window-close-all sleep; do
+for command in hexarchy-state hexarchy-hyprland-window-close-all sleep; do
   cat >"$mock_bin/$command" <<'SH'
 #!/bin/bash
 
@@ -30,7 +30,7 @@ run_power_command() {
   local action="$1"
 
   : >"$call_log"
-  PATH="$mock_bin:$PATH" CALL_LOG="$call_log" "$ROOT/bin/omarchy-system-$action"
+  PATH="$mock_bin:$PATH" CALL_LOG="$call_log" "$ROOT/bin/hexarchy-system-$action"
 }
 
 assert_power_calls() {
@@ -40,8 +40,8 @@ assert_power_calls() {
 
   cat >"$expected_log" <<EOF
 systemd-run --user --collect --quiet --on-active=2s --timer-property=AccuracySec=100ms systemctl $systemctl_action --no-wall
-omarchy-state clear re*-required
-omarchy-hyprland-window-close-all 
+hexarchy-state clear re*-required
+hexarchy-hyprland-window-close-all 
 sleep 1
 EOF
 
@@ -57,7 +57,7 @@ assert_power_calls shutdown poweroff
 
 for action in reboot shutdown; do
   : >"$call_log"
-  if PATH="$mock_bin:$PATH" CALL_LOG="$call_log" FAIL_SYSTEMD_RUN=true "$ROOT/bin/omarchy-system-$action"; then
+  if PATH="$mock_bin:$PATH" CALL_LOG="$call_log" FAIL_SYSTEMD_RUN=true "$ROOT/bin/hexarchy-system-$action"; then
     fail "$action aborts when scheduling fails"
   fi
 

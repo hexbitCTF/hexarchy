@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# hexarchy:summary=Returns true when clamshell mode is active
+# hexarchy:hidden=true
+
+# Clamshell = lid closed while driving one or more external monitors.
+hexarchy-hw-laptop-closed && hexarchy-hw-external-monitors

@@ -7,8 +7,8 @@ import "Model.js" as Model
 
 Panel {
   id: root
-  moduleName: "omarchy.weather"
-  ipcTarget: "omarchy.weather"
+  moduleName: "hexarchy.weather"
+  ipcTarget: "hexarchy.weather"
   manageIpc: false
 
   property var anchorItem: null
@@ -63,9 +63,7 @@ Panel {
   }
 
   function setCenterHoverRevealSuppressed(value) {
-    if (root.bar && typeof root.bar.setCenterHoverRevealSuppressed === "function")
-      root.bar.setCenterHoverRevealSuppressed(value)
-    else if (root.bar && "centerHoverRevealSuppressed" in root.bar)
+    if (root.bar && "centerHoverRevealSuppressed" in root.bar)
       root.bar.centerHoverRevealSuppressed = value
   }
 
@@ -75,7 +73,7 @@ Panel {
   property string wttrLocation: ""
 
   // Configured location, read from the weather.json state file (owned by
-  // omarchy-weather-location). The query is the wttr.in path segment
+  // hexarchy-weather-location). The query is the wttr.in path segment
   // (coordinates when stored, else the encoded name); empty means IP
   // auto-detect. The watch makes hand edits take effect live.
   property var configuredLocationState: ({ name: "", latitude: null, longitude: null })
@@ -95,7 +93,7 @@ Panel {
   }
 
   property FileView locationFile: FileView {
-    path: Quickshell.env("HOME") + "/.local/state/omarchy/settings/weather.json"
+    path: Quickshell.env("HOME") + "/.local/state/hexarchy/settings/weather.json"
     watchChanges: true
     printErrors: false
     onFileChanged: reload()
@@ -252,11 +250,11 @@ Panel {
 
   function persistLocation(name, latitude, longitude) {
     if (name && latitude !== null && longitude !== null)
-      locationSaveProc.command = ["omarchy-weather-location", "--set", name, latitude + "," + longitude]
+      locationSaveProc.command = ["hexarchy-weather-location", "--set", name, latitude + "," + longitude]
     else if (name)
-      locationSaveProc.command = ["omarchy-weather-location", "--set", name]
+      locationSaveProc.command = ["hexarchy-weather-location", "--set", name]
     else
-      locationSaveProc.command = ["omarchy-weather-location", "--clear"]
+      locationSaveProc.command = ["hexarchy-weather-location", "--clear"]
     locationSaveProc.running = true
   }
 
@@ -325,7 +323,7 @@ Panel {
     return Model.iconForOpenMeteoCode(code)
   }
 
-  // Mirrors omarchy-weather-icon's wttr.in code → nerd-font glyph mapping.
+  // Mirrors hexarchy-weather-icon's wttr.in code → nerd-font glyph mapping.
   function iconForCode(code, night) {
     return Model.iconForCode(code, night)
   }
@@ -533,7 +531,6 @@ Panel {
 
           Text {
             id: heroIcon
-            textFormat: Text.PlainText
             anchors.verticalCenter: parent.verticalCenter
             anchors.verticalCenterOffset: 5
             text: root.label || "—"
@@ -550,7 +547,6 @@ Panel {
 
             Text {
               id: tempBig
-              textFormat: Text.PlainText
               text: root.reportTempNum || "—"
               color: root.bar.foreground
               font.family: root.bar.fontFamily
@@ -560,7 +556,6 @@ Panel {
               font.bold: true
             }
             Text {
-              textFormat: Text.PlainText
               text: root.current ? root.tempUnit : ""
               color: root.bar.foreground
               font.family: root.bar.fontFamily
@@ -598,7 +593,6 @@ Panel {
               anchors.verticalCenter: parent.verticalCenter
             }
             Text {
-              textFormat: Text.PlainText
               text: (root.reportLocation || "").toUpperCase()
               color: Qt.darker(root.bar.foreground, 1.4)
               font.family: root.bar.fontFamily
@@ -649,7 +643,6 @@ Panel {
               color: !root.savingLocation && clearLocationArea.containsMouse ? Style.hoverFillFor(root.bar.foreground, Color.accent) : "transparent"
 
               Text {
-                textFormat: Text.PlainText
                 anchors.centerIn: parent
                 text: root.savingLocation ? "󰦖" : "✕"
                 font.family: root.bar.fontFamily
@@ -690,7 +683,6 @@ Panel {
                 font.letterSpacing: 1
               }
               Text {
-                textFormat: Text.PlainText
                 text: root.reportFeels
                 color: root.bar.foreground
                 font.family: root.bar.fontFamily
@@ -708,7 +700,6 @@ Panel {
                 font.letterSpacing: 1
               }
               Text {
-                textFormat: Text.PlainText
                 text: root.reportWind
                 color: root.bar.foreground
                 font.family: root.bar.fontFamily
@@ -726,7 +717,6 @@ Panel {
                 font.letterSpacing: 1
               }
               Text {
-                textFormat: Text.PlainText
                 text: root.reportHumidity
                 color: root.bar.foreground
                 font.family: root.bar.fontFamily
@@ -762,14 +752,12 @@ Panel {
               spacing: Style.space(8)
 
               Text {
-                textFormat: Text.PlainText
                 text: modelData.name
                 color: index === root.suggestionIndex ? Style.hoverStateColor(root.bar.foreground, Color.accent) : root.bar.foreground
                 font.family: root.bar.fontFamily
                 font.pixelSize: Style.font.body
               }
               Text {
-                textFormat: Text.PlainText
                 visible: text !== ""
                 text: modelData.description
                 color: Qt.darker(root.bar.foreground, 1.5)
@@ -829,7 +817,6 @@ Panel {
               spacing: Style.space(10)
 
               Text {
-                textFormat: Text.PlainText
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.dayIcon(modelData)
                 color: root.bar.foreground
@@ -842,7 +829,6 @@ Panel {
                 spacing: Style.space(2)
 
                 Text {
-                  textFormat: Text.PlainText
                   text: root.dayName(modelData.date).toUpperCase()
                   color: Qt.darker(root.bar.foreground, 1.4)
                   font.family: root.bar.fontFamily
@@ -854,14 +840,12 @@ Panel {
                   spacing: Style.space(6)
 
                   Text {
-                    textFormat: Text.PlainText
                     text: root.bareTempForDay(modelData, "max")
                     color: root.bar.foreground
                     font.family: root.bar.fontFamily
                     font.pixelSize: Style.font.body
                   }
                   Text {
-                    textFormat: Text.PlainText
                     text: root.bareTempForDay(modelData, "min")
                     color: Qt.darker(root.bar.foreground, 1.5)
                     font.family: root.bar.fontFamily

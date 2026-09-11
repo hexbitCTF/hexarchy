@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# hexarchy:summary=Lock and reconcile displays when the laptop lid closes
+# hexarchy:group=system
+# hexarchy:hidden=true
+
+# Locking here rather than waiting for PrepareForSleep is what keeps the lock
+# off the critical path. logind's delay inhibitor is a timer that expires
+# whether or not the session is secure, so starting the lock the moment the lid
+# closes gives Quickshell a head start before logind even decides to suspend.
+# hexarchy-system-sleep-lock then usually finds the session already secure.
+#
+# A docked lid close does not suspend (HandleLidSwitchDocked defaults to
+# ignore), so it must not lock either: that is clamshell mode, still in use on
+# the external display.
+if hexarchy-hw-laptop-closed && ! hexarchy-hw-external-monitors; then
+  hexarchy-system-lock >/dev/null 2>&1 || true
+fi
+
+# Monitor/lid policy is owned by hyprmoncfgd on this system. Hexarchy's
+# clamshell helper re-enables the internal panel at scale 2 whenever it runs,
+# which fights the active profile and makes eDP-1 flicker on lock/wake. The lid
+# bindings are also unbound in ~/.config/hypr/bindings.lua for the same reason;
+# hyprmoncfgd applies the docked/closed-lid layout itself.
+# hexarchy-hyprland-monitor-clamshell

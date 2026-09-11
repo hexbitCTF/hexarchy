@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# hexarchy:summary=Launch a floating terminal with the Hexarchy presentation wrapper
+# hexarchy:args=<command>
+
+# Export the current theme's gum styling so gum widgets match the active theme
+# even after a theme switch (the inherited environment is captured at login).
+source hexarchy-restart-gum
+
+cmd="$*"
+presentation_script="hexarchy-show-logo; $cmd; if (( \$? != 130 )); then hexarchy-show-done; fi"
+
+exec setsid uwsm-app -- xdg-terminal-exec --app-id=org.hexarchy.terminal --title=Hexarchy -e bash -c "$presentation_script"

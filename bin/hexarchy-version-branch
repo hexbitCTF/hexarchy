@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# hexarchy:summary=Print the active Hexarchy dev-link git branch
+# hexarchy:hidden=true
+
+hexarchy_path=${HEXARCHY_PATH:-/usr/share/hexarchy}
+hexarchy_path=${hexarchy_path%/}
+
+[[ $hexarchy_path != "/usr/share/hexarchy" ]] || exit 1
+
+branch=$(git -C "$hexarchy_path" branch --show-current 2>/dev/null || true)
+if [[ -z $branch ]]; then
+  hash=$(git -C "$hexarchy_path" rev-parse --short HEAD 2>/dev/null || true)
+  [[ -n $hash ]] || exit 1
+  branch="detached@$hash"
+fi
+
+echo "$branch"

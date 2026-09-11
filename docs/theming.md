@@ -1,15 +1,15 @@
-# Omarchy theming
+# Hexarchy theming
 
-Omarchy themes live under `themes/<name>/` in the source tree (installed at
-`/usr/share/omarchy/themes/<name>/`), with optional user themes under
-`~/.config/omarchy/themes/<name>/`. A theme normally starts with a
-`colors.toml`; Omarchy generates the active theme files from
-`default/themed/*.tpl` when `omarchy-theme-set <name>` runs.
+Hexarchy themes live under `themes/<name>/` in the source tree (installed at
+`/usr/share/hexarchy/themes/<name>/`), with optional user themes under
+`~/.config/hexarchy/themes/<name>/`. A theme normally starts with a
+`colors.toml`; Hexarchy generates the active theme files from
+`default/themed/*.tpl` when `hexarchy-theme-set <name>` runs.
 
 Beyond `colors.toml` and hand-written config overrides, a first-party theme can
 ship `backgrounds/` (users overlay their own via
-`~/.config/omarchy/backgrounds/<name>/`; the active image is the
-`~/.local/state/omarchy/current/background` symlink), `preview.png` and
+`~/.config/hexarchy/backgrounds/<name>/`; the active image is the
+`~/.local/state/hexarchy/current/background` symlink), `preview.png` and
 `preview-unlock.png` for the theme switcher, `icons.theme`, `keyboard.rgb`,
 `unlock.png`, and a `light.mode` marker file.
 
@@ -17,53 +17,53 @@ A theme installed from a git repo is held to a much shorter list; see [What an i
 
 ## Theme activation flow
 
-`omarchy-theme-set <name>` builds a clean staging directory at
-`~/.local/state/omarchy/current/next-theme`:
+`hexarchy-theme-set <name>` builds a clean staging directory at
+`~/.local/state/hexarchy/current/next-theme`:
 
 1. Copy the first-party theme from `themes/<name>/`.
-2. Overlay `~/.config/omarchy/themes/<name>/`, in full when the user wrote it and filtered when it came from a git repo, naming anything it dropped on stderr.
+2. Overlay `~/.config/hexarchy/themes/<name>/`, in full when the user wrote it and filtered when it came from a git repo, naming anything it dropped on stderr.
 3. If needed, generate `colors.toml` from `alacritty.toml`.
-4. Run `omarchy-theme-set-templates` to render templates into the staging
+4. Run `hexarchy-theme-set-templates` to render templates into the staging
    theme.
-5. Move the staging theme into `~/.local/state/omarchy/current/theme`, write
-   `~/.local/state/omarchy/current/theme.name`, and notify the running shell.
+5. Move the staging theme into `~/.local/state/hexarchy/current/theme`, write
+   `~/.local/state/hexarchy/current/theme.name`, and notify the running shell.
 
 Template rendering only happens when the staged theme has `colors.toml`.
 Existing files are never overwritten by a template, so a hand-written
 `themes/<name>/shell.toml` or `hyprland.lua` wins over
 `default/themed/shell.toml.tpl` or `hyprland.lua.tpl`.
 
-User templates in `~/.config/omarchy/themed/*.tpl` are processed before the
+User templates in `~/.config/hexarchy/themed/*.tpl` are processed before the
 built-in templates. If a user template has the same output filename as a
 built-in template, the built-in output is skipped.
 
-After activation, `omarchy-theme-set` fires the `theme-set` hook
-(`~/.config/omarchy/hooks/theme-set*`, theme name in `$1`) and dispatches a
+After activation, `hexarchy-theme-set` fires the `theme-set` hook
+(`~/.config/hexarchy/hooks/theme-set*`, theme name in `$1`) and dispatches a
 parallel retint of running apps — terminals, Hyprland, btop, browser, editors,
-and the rest of the `post_theme_commands` list in `bin/omarchy-theme-set`.
+and the rest of the `post_theme_commands` list in `bin/hexarchy-theme-set`.
 Making a new app follow theme changes means adding its restart/retint command
 to that list. Runs serialize on a `flock`, so scripted theme changes queue
 instead of racing.
 
 ## What an installed theme may not ship
 
-`themes/<name>/` in this repo is Omarchy's own code and is trusted. So is a theme the user wrote by hand in `~/.config/omarchy/themes/<name>/`: it is their machine and their file, and both stage in full.
+`themes/<name>/` in this repo is Hexarchy's own code and is trusted. So is a theme the user wrote by hand in `~/.config/hexarchy/themes/<name>/`: it is their machine and their file, and both stage in full.
 
-`omarchy theme install <url>` is different. It clones a stranger's git repo straight into that same directory, so the contents are whatever the theme author pushed. `omarchy-theme-set` tells the two apart the way `omarchy-theme-extras` already does — a `.git` directory means it was cloned, while a plain directory or a symlink to a working copy is the user's own — and from a cloned one it drops only what can run code:
+`hexarchy theme install <url>` is different. It clones a stranger's git repo straight into that same directory, so the contents are whatever the theme author pushed. `hexarchy-theme-set` tells the two apart the way `hexarchy-theme-extras` already does — a `.git` directory means it was cloned, while a plain directory or a symlink to a working copy is the user's own — and from a cloned one it drops only what can run code:
 
 - any `*.lua` — Hyprland `require`s a theme's `hyprland.lua` and `gum_env.lua` at login, and Neovim loads its `neovim.lua` at startup
 - `alacritty.toml`, `foot.ini`, `ghostty.conf`, `kitty.conf` — each names the program the terminal launches
-- `vscode.json` — names the extension `omarchy-theme-set-vscode` installs, and a VS Code extension is arbitrary JavaScript
+- `vscode.json` — names the extension `hexarchy-theme-set-vscode` installs, and a VS Code extension is arbitrary JavaScript
 
-Symlinks are dropped with them, at any depth; in a cloned theme they point wherever the theme author chose. Everything a cloned theme ships that is colour is kept, including files Omarchy would otherwise have generated — `btop.theme`, `chromium.theme`, `helix.toml`, `shell.toml`, `icons.theme`, `keyboard.rgb` and the rest — so a theme can still say exactly how it wants each app to look. What is dropped gets generated from `default/themed/*.tpl` instead, and is named on stderr.
+Symlinks are dropped with them, at any depth; in a cloned theme they point wherever the theme author chose. Everything a cloned theme ships that is colour is kept, including files Hexarchy would otherwise have generated — `btop.theme`, `chromium.theme`, `helix.toml`, `shell.toml`, `icons.theme`, `keyboard.rgb` and the rest — so a theme can still say exactly how it wants each app to look. What is dropped gets generated from `default/themed/*.tpl` instead, and is named on stderr.
 
-A denylist is only right while it is maintained. Adding a template for another terminal, or for another editor that loads Lua, means adding it to `INSTALLED_THEME_DENIED` in `bin/omarchy-theme-set`; `test/shell.d/theme-staging-test.sh` fails on any `default/themed/*.tpl` whose output is recorded as neither code nor colour, so a new template cannot be added without that decision being made.
+A denylist is only right while it is maintained. Adding a template for another terminal, or for another editor that loads Lua, means adding it to `INSTALLED_THEME_DENIED` in `bin/hexarchy-theme-set`; `test/shell.d/theme-staging-test.sh` fails on any `default/themed/*.tpl` whose output is recorded as neither code nor colour, so a new template cannot be added without that decision being made.
 
-A theme predating `colors.toml` is not left without a palette: its `alacritty.toml` is read through `omarchy-theme-colors-from-alacritty` into a scratch directory and only the resulting `colors.toml` is staged, so the colors survive and the terminal config does not.
+A theme predating `colors.toml` is not left without a palette: its `alacritty.toml` is read through `hexarchy-theme-colors-from-alacritty` into a scratch directory and only the resulting `colors.toml` is staged, so the colors survive and the terminal config does not.
 
-The restriction lives in `omarchy-theme-set` rather than in `omarchy-theme-install` on purpose. Filtering at staging also covers themes installed before the rule existed and files a theme gains later through `omarchy theme update`.
+The restriction lives in `hexarchy-theme-set` rather than in `hexarchy-theme-install` on purpose. Filtering at staging also covers themes installed before the rule existed and files a theme gains later through `hexarchy theme update`.
 
-What this does not cover: a theme distributed as an archive rather than a git repo, extracted into `~/.config/omarchy/themes/` by hand, is indistinguishable from one the user wrote and stages in full. `omarchy theme install` only takes git URLs, so the supported path is always filtered, but the check is a statement about where a theme came from and not a sandbox.
+What this does not cover: a theme distributed as an archive rather than a git repo, extracted into `~/.config/hexarchy/themes/` by hand, is indistinguishable from one the user wrote and stages in full. `hexarchy theme install` only takes git URLs, so the supported path is always filtered, but the check is a statement about where a theme came from and not a sandbox.
 
 ## `colors.toml`
 
@@ -123,14 +123,14 @@ The neutral ramp is centered on `background -> bright_foreground`. Dark themes
 should read from darkest to lightest; light themes should read from lightest to
 darkest. Terminal and editor cursors use `bright_foreground`; there is no
 separate cursor palette key. `selection` is the text-selection background stop
-in that ramp; Omarchy derives `selection_background = selection` and
+in that ramp; Hexarchy derives `selection_background = selection` and
 `selection_foreground = bright_foreground`. Use
-`omarchy dev theme-preview [theme]` to inspect that ramp, including
+`hexarchy dev theme-preview [theme]` to inspect that ramp, including
 `dark_background`, `darker_background`, and a selected-text sample.
 
 ## Template placeholders
 
-Templates are plain files ending in `.tpl`. `omarchy-theme-set-templates`
+Templates are plain files ending in `.tpl`. `hexarchy-theme-set-templates`
 replaces placeholders with values from `colors.toml`.
 
 ### Color placeholders
@@ -380,7 +380,7 @@ local active_border_color = { colors = { "rgba(33ccffee)", "rgba(00ff99ee)" }, a
   override the generated output entirely.
 - Add a new built-in template under `default/themed/<file>.tpl` when every
   theme should generate that file.
-- Add a user-wide template under `~/.config/omarchy/themed/<file>.tpl` when a
+- Add a user-wide template under `~/.config/hexarchy/themed/<file>.tpl` when a
   local customization should apply across themes.
 
 When changing templates or theme helpers, run focused tests such as:

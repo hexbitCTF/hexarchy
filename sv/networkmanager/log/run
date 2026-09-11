@@ -1,0 +1,3 @@
+#!/bin/sh
+[ -r ./conf ] && . ./conf
+exec svlogd -tt ${LOGDIR:-/var/log/svlog/}

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# hexarchy:summary=Apply the current theme keyboard color to ASUS ROG keyboards
+# hexarchy:hidden=true
+
+ASUSCTL_THEME=$HOME/.local/state/hexarchy/current/theme/keyboard.rgb
+
+if hexarchy-cmd-present asusctl && [[ -f $ASUSCTL_THEME ]]; then
+  color=$(sed 's/^#//' "$ASUSCTL_THEME")
+  [[ $color =~ ^[0-9A-Fa-f]{6}$ ]] || exit 0
+  asusctl aura effect static -c "$color"
+fi

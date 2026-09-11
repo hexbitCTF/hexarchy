@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# hexarchy:summary=Install Emacs with Hexarchy theme and font integration via the hexarchy-emacs AUR package
+
+echo "Installing Emacs..."
+hexarchy-pkg-aur-add hexarchy-emacs && hexarchy-install-emacs
+
+# emacsclient opens a frame on the running daemon, not a second Emacs
+setsid uwsm-app -- gtk-launch emacsclient >/dev/null 2>&1 &

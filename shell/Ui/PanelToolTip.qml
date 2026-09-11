@@ -36,7 +36,6 @@ ToolTip {
   }
 
   contentItem: Text {
-    textFormat: Text.PlainText
     text: root.text
     color: root.panelForeground
     font.family: root.fontFamily

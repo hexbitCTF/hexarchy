@@ -128,7 +128,7 @@ Item {
     visible: root.opened
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
-    WlrLayershell.namespace: "omarchy-osd"
+    WlrLayershell.namespace: "hexarchy-osd"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Ignore
@@ -159,7 +159,6 @@ Item {
           width: root.iconWidth
           height: parent.height
           Text {
-            textFormat: Text.PlainText
             // Sit the glyph's ink flush in the column, centered when the
             // column is wider than this particular glyph.
             x: Math.round((root.iconWidth - root.iconInkWidth) / 2 - iconMetrics.tightBoundingRect.x)
@@ -187,7 +186,6 @@ Item {
           }
         }
         Text {
-          textFormat: Text.PlainText
           visible: root.message !== ""
           width: root.hasProgress ? root.valueWidth : root.messageWidth
           // The readout hugs the card edge so a short percentage doesn't leave

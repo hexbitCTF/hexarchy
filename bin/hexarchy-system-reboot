@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# hexarchy:summary=Reboot after closing application windows
+# hexarchy:examples=hexarchy reboot | hexarchy system reboot
+# hexarchy:aliases=hexarchy reboot
+
+# Schedule the reboot so closing the terminal cannot terminate it before it runs.
+( sleep 2; loginctl reboot ) &
+
+hexarchy-osd -i reboot -m "Rebooting" -d 5000
+
+hexarchy-state clear re*-required
+
+# Now close all windows
+hexarchy-hyprland-window-close-all
+sleep 1 # Allow apps like Chrome to shutdown correctly

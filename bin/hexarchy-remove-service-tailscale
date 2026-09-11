@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# hexarchy:summary=Remove Tailscale and its bar plugin.
+# hexarchy:requires-sudo=true
+
+tailscale down 2>/dev/null || true
+sv stop hexarchy-tailscale-receive 2>/dev/null || true
+rm -f /run/runit/service/hexarchy-tailscale-receive 2>/dev/null || true
+sudo sv stop tailscaled 2>/dev/null || true
+sudo rm -f /run/runit/service/tailscaled 2>/dev/null || true
+hexarchy-plugin-disable hexarchy.tailscale
+hexarchy-webapp-remove "Tailscale" 2>/dev/null || true
+hexarchy-pkg-drop tailscale
+
+echo ""
+echo "Tailscale has been removed."

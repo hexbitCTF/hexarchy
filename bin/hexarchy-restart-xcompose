@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# hexarchy:summary=Restart the XCompose input method service (fcitx5) to apply new compose key settings.
+
+# A fcitx5 running outside the unit owns org.fcitx.Fcitx5, so the unit's
+# instance would exit on arrival and the stale process would keep serving the
+# old ~/.XCompose -- a restart that reports success and changes nothing.
+sv stop hexarchy-fcitx5
+pkill -x fcitx5 >/dev/null 2>&1 || true
+sv start hexarchy-fcitx5

@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# hexarchy:summary=Update the active Hexarchy dev checkout
+
+set -euo pipefail
+
+[[ $HEXARCHY_PATH != "/usr/share/hexarchy" ]] || exit 0
+
+if ! git -C "$HEXARCHY_PATH" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "Error: HEXARCHY_PATH is not a git checkout: $HEXARCHY_PATH" >&2
+  exit 1
+fi
+
+upstream=$(git -C "$HEXARCHY_PATH" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)
+if [[ -z $upstream ]]; then
+  echo -e "\e[33m\nSkip Hexarchy dev checkout update (current branch has no upstream)\e[0m"
+  exit 0
+fi
+
+echo -e "\e[32m\nUpdate Hexarchy dev checkout\e[0m"
+git -C "$HEXARCHY_PATH" pull --ff-only

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# hexarchy:summary=Toggle single-window square aspect ratio.
+
+case $(hexarchy-hyprland-toggle single-window-aspect-ratio) in
+  on) hexarchy-notification-send -g  "Enable single-window square aspect ratio" ;;
+  off) hexarchy-notification-send -g  "Disable single-window square aspect ratio" ;;
+esac

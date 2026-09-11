@@ -9,12 +9,19 @@ Item {
   id: root
 
   property var shell: null
-  property string omarchyPath: ""
+  property string hexarchyPath: ""
 
   readonly property string home: Quickshell.env("HOME")
   readonly property string stateHome: home + "/.local/state"
   readonly property string userName: Quickshell.env("USER") || Quickshell.env("LOGNAME")
-  readonly property string currentBackgroundLink: stateHome + "/omarchy/current/background"
+  readonly property string currentBackgroundLink: stateHome + "/hexarchy/current/background"
+
+  // Real system accounts offered by the lock's username chooser. Populated
+  // from /etc/passwd (login-shell accounts only) so the chooser lists the same
+  // users SDDM would. The current session user is preselected.
+  property var users: root.userName ? [root.userName] : []
+  property bool usersLoaded: false
+  property string selectedUser: root.userName || ""
 
   property bool lockRequested: false
   property bool pendingSessionLock: false
@@ -31,21 +38,11 @@ Item {
   property int backgroundVersion: 0
   property string lastEvent: "init"
   property string lastEventAt: ""
-  property bool displaysBlank: false
-  // displaysBlank tracks what the lock asked for; Hyprland reports what each
-  // panel actually did. While a video is on show the two are reconciled, so a
-  // blank that failed keeps playing and a panel woken behind the lock's back
-  // (a resume that kept the same outputs) resumes instead of freezing.
-  property var monitorDpms: ({})
-  property bool monitorDpmsKnown: false
-  readonly property bool videoBackground: Util.isVideoPath(backgroundPath)
   property bool strandedLock: false
   property bool strandedLockResolved: false
 
   readonly property bool locked: lockRequested || sessionLock.locked || sessionLock.secure
   readonly property bool authenticating: authenticatingPassword || fingerprintAuthenticating
-  readonly property var batteryService: shell && shell.services ? shell.firstPartyServiceFor("omarchy.battery") : null
-  readonly property bool powerSaverActive: batteryService ? batteryService.powerSaverOnBattery : false
 
   function realScreenCount() {
     var screens = Quickshell.screens || []
@@ -120,7 +117,7 @@ Item {
   function logEvent(event) {
     lastEvent = event
     lastEventAt = new Date().toISOString()
-    console.log("omarchy lock " + lastEventAt + " " + event)
+    console.log("hexarchy lock " + lastEventAt + " " + event)
   }
 
   function resetAuthenticationState() {
@@ -175,40 +172,12 @@ Item {
   }
 
   function runWake() {
-    root.displaysBlank = false
-    root.monitorDpmsKnown = false
     if (!wakeProcess.running) wakeProcess.running = true
     if (lockRequested) armBlankTimer()
   }
 
   function runBlank() {
-    root.displaysBlank = true
-    root.monitorDpmsKnown = false
     if (!blankProcess.running) blankProcess.running = true
-  }
-
-  function screenBlank(screenName) {
-    var name = String(screenName || "")
-    if (!monitorDpmsKnown || !(name in monitorDpms)) return displaysBlank
-    return !monitorDpms[name]
-  }
-
-  function applyMonitorDpms(text) {
-    var monitors
-    try {
-      monitors = JSON.parse(String(text || ""))
-    } catch (error) {
-      return
-    }
-    if (!Array.isArray(monitors)) return
-
-    var dpms = {}
-    for (var i = 0; i < monitors.length; i++) {
-      var monitor = monitors[i]
-      if (monitor && monitor.name && !monitor.disabled) dpms[String(monitor.name)] = !!monitor.dpmsStatus
-    }
-    monitorDpms = dpms
-    monitorDpmsKnown = true
   }
 
   function submitPassword(value) {
@@ -314,9 +283,15 @@ Item {
         failedAttempts: root.failedAttempts
         inputEnabled: root.lockRequested
         loadBackground: root.locked
-        displaysBlank: root.screenBlank(lockSurface.screen ? lockSurface.screen.name : "")
-        powerSaverActive: root.powerSaverActive
         passwordText: root.enteredPassword
+        users: root.users
+        selectedUser: root.selectedUser
+        onUserSelected: function(user) {
+          root.selectedUser = user
+          root.enteredPassword = ""
+          root.failureMessage = ""
+          root.failedAttempts = 0
+        }
         onPasswordTextEdited: function(password) { root.enteredPassword = password }
         onSubmitPassword: function(password) { root.submitPassword(password) }
         onClearFailureRequested: root.failureMessage = ""
@@ -331,7 +306,7 @@ Item {
     visible: root.previewVisible
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
-    WlrLayershell.namespace: "omarchy-lock-preview"
+    WlrLayershell.namespace: "hexarchy-lock-preview"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore
@@ -346,8 +321,9 @@ Item {
       failedAttempts: 0
       inputEnabled: false
       loadBackground: root.previewVisible
-      powerSaverActive: root.powerSaverActive
       passwordText: ""
+      users: root.users
+      selectedUser: root.selectedUser
     }
 
     MouseArea {
@@ -359,8 +335,8 @@ Item {
 
   PamContext {
     id: passwordPam
-    config: "omarchy-lock-password"
-    user: root.userName
+    config: "hexarchy-lock-password"
+    user: root.selectedUser || root.userName
 
     onResponseRequiredChanged: root.respondToPasswordPrompt()
     onPamMessage: root.respondToPasswordPrompt()
@@ -381,7 +357,7 @@ Item {
 
   PamContext {
     id: fingerprintPam
-    config: "omarchy-lock-fingerprint"
+    config: "hexarchy-lock-fingerprint"
     user: root.userName
 
     onCompleted: function(result) {
@@ -416,9 +392,33 @@ Item {
     }
   }
 
+  // Enumerate login-shell accounts for the username chooser. Only regular
+  // users (UID >= 1000) qualify, so root, service accounts, and daemons like
+  // git never appear; any future useradd account shows up automatically.
+  Process {
+    id: usersProc
+    command: ["bash", "-c", "getent passwd | awk -F: '$3 >= 1000 && $7 !~ /nologin/ && $7 !~ /false$/ {print $1}' | sort -u"]
+    stdout: StdioCollector { id: usersStdout; waitForEnd: true }
+    onExited: function(exitCode) {
+      if (exitCode !== 0) return
+      var lines = String(usersStdout.text || "").split("\n")
+      var list = []
+      for (var i = 0; i < lines.length; i++) {
+        var u = lines[i].trim().replace(/\r/g, "")
+        if (u === "" || list.indexOf(u) !== -1) continue
+        list.push(u)
+      }
+      if (list.length > 0) {
+        root.users = list
+        if (list.indexOf(root.selectedUser) === -1) root.selectedUser = list[0]
+      }
+      root.usersLoaded = true
+    }
+  }
+
   Process {
     id: fingerprintCheckProc
-    command: ["bash", "-c", "if [[ -f /etc/pam.d/omarchy-lock-fingerprint ]] && command -v fprintd-list >/dev/null 2>&1 && fprintd-list \"$USER\" 2>/dev/null | grep -qi finger; then echo yes; else echo no; fi"]
+    command: ["bash", "-c", "if [[ -f /etc/pam.d/hexarchy-lock-fingerprint ]] && command -v fprintd-list >/dev/null 2>&1 && fprintd-list \"$USER\" 2>/dev/null | grep -qi finger; then echo yes; else echo no; fi"]
     stdout: StdioCollector { id: fingerprintCheckStdout; waitForEnd: true }
     onExited: {
       root.fingerprintConfigured = String(fingerprintCheckStdout.text || "").trim() === "yes"
@@ -429,7 +429,7 @@ Item {
 
   Process {
     id: strandedLockCheckProc
-    command: ["bash", "-c", "omarchy-hyprland-session-locked"]
+    command: ["bash", "-c", "hexarchy-hyprland-session-locked"]
     onExited: function(exitCode) {
       // No output to read the lock off yet.
       if (exitCode === 2) return
@@ -444,37 +444,12 @@ Item {
 
   Process {
     id: wakeProcess
-    command: ["bash", "-c", "omarchy-system-wake"]
+    command: ["bash", "-c", "hexarchy-system-wake"]
   }
 
   Process {
     id: blankProcess
-    command: ["bash", "-c", "omarchy-brightness-keyboard off; omarchy-brightness-display off"]
-  }
-
-  // Quickshell exposes no DPMS signal, so the panel state is polled while a
-  // video is the locked wallpaper. A wake or blank request drops the last
-  // answer, so its optimistic state applies until the next poll confirms it.
-  Process {
-    id: monitorDpmsProcess
-    command: ["hyprctl", "monitors", "-j"]
-    stdout: StdioCollector {
-      onStreamFinished: root.applyMonitorDpms(text)
-    }
-  }
-
-  Timer {
-    id: monitorDpmsTimer
-    interval: 3000
-    repeat: true
-    triggeredOnStart: true
-    running: root.locked && root.videoBackground
-    onTriggered: {
-      if (!monitorDpmsProcess.running) monitorDpmsProcess.running = true
-    }
-    onRunningChanged: {
-      if (!running) root.monitorDpmsKnown = false
-    }
+    command: ["bash", "-c", "hexarchy-brightness-keyboard off; hexarchy-brightness-display off"]
   }
 
   Timer {
@@ -533,10 +508,6 @@ Item {
   Connections {
     target: Quickshell
     function onScreensChanged() {
-      // A panel coming back is a display turning on that runWake did not ask
-      // for, so the blank state has to be given up here or a visible lock
-      // wallpaper stays frozen until the next keypress.
-      root.displaysBlank = false
       root.requestSessionLock()
 
       // A monitor still coming up has no workspace, so cannot answer yet.
@@ -552,7 +523,7 @@ Item {
   }
 
   FileView {
-    path: "/etc/pam.d/omarchy-lock-password"
+    path: "/etc/pam.d/hexarchy-lock-password"
     watchChanges: true
     printErrors: false
     onLoaded: root.passwordPamConfigured = true
@@ -575,6 +546,7 @@ Item {
     refreshBackground()
     refreshFingerprintStatus()
     checkStrandedLock()
+    usersProc.running = true
   }
 
   IpcHandler {
@@ -601,9 +573,20 @@ Item {
         passwordPam: root.passwordPamConfigured,
         fingerprint: root.fingerprintConfigured,
         authenticating: root.authenticating,
+        users: root.users,
+        selectedUser: root.selectedUser,
         lastEvent: root.lastEvent,
         lastEventAt: root.lastEventAt
       })
+    }
+
+    function setUser(user: string): string {
+      var u = String(user || "").trim()
+      if (u === "" || root.users.indexOf(u) === -1) return "unknown-user"
+      root.selectedUser = u
+      root.failureMessage = ""
+      root.failedAttempts = 0
+      return "ok"
     }
 
     function preview(): string {

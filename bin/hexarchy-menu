@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# hexarchy:summary=Control the Hexarchy menu (toggle / summon / close / refresh)
+# hexarchy:args=[toggle|summon|close|refresh|ping] [route]
+# hexarchy:examples=hexarchy menu | hexarchy menu toggle system | hexarchy menu summon style.theme | hexarchy menu refresh
+
+# Thin wrapper around the standard plugin IPC surface. The menu is the
+# first-party `hexarchy.menu` plugin; routes are passed as JSON payload.
+
+set -euo pipefail
+
+verb="${1-toggle}"
+route="${2-root}"
+
+menu_payload() {
+  jq -nc --arg menu "$1" '{ menu: $menu }'
+}
+
+case "$verb" in
+  toggle)
+    exec hexarchy-shell shell toggle hexarchy.menu "$(menu_payload "$route")"
+    ;;
+  summon)
+    exec hexarchy-shell shell summon hexarchy.menu "$(menu_payload "$route")"
+    ;;
+  close)
+    exec hexarchy-shell shell hide hexarchy.menu
+    ;;
+  refresh | ping)
+    exec hexarchy-shell shell call hexarchy.menu "$verb" "{}"
+    ;;
+  -h | --help | help)
+    cat <<USAGE
+Usage: hexarchy menu [verb] [route]
+
+Verbs:
+  toggle [route]   Open the menu at <route>, or close it if already open. Default verb.
+  summon [route]   Always open the menu (no close-if-visible toggle).
+  close            Close the menu if it is visible.
+  refresh          Re-parse the menu JSONC files.
+  ping             Health check.
+
+Route is an item id (e.g. setup.power) or alias (e.g. power). Defaults to
+"root", which opens the top-level menu.
+USAGE
+    exit 0
+    ;;
+  *)
+    echo "hexarchy-menu: unknown verb '$verb'. Try 'hexarchy menu --help'." >&2
+    exit 2
+    ;;
+esac

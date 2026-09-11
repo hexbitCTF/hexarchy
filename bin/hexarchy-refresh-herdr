@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# hexarchy:summary=Overwrite the user herdr config with the Hexarchy default and reload herdr.
+
+hexarchy-refresh-config herdr/config.toml
+hexarchy-restart-herdr

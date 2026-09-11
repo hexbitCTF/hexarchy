@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# hexarchy:summary=Show the current Hexarchy dev-link state
+# hexarchy:group=dev
+
+set -euo pipefail
+
+default_target="/usr/share/hexarchy"
+sudoers_file="/etc/sudoers.d/hexarchy-dev-path"
+configured="$default_target"
+conf_present=0
+linked=0
+
+if [[ -f /etc/hexarchy.conf ]]; then
+  conf_present=1
+  configured=$(
+    HEXARCHY_PATH=
+    # shellcheck disable=SC1091
+    . /etc/hexarchy.conf
+    printf '%s' "${HEXARCHY_PATH:-<empty>}"
+  )
+  if [[ $configured != "$default_target" ]]; then
+    linked=1
+  fi
+fi
+
+# /etc/sudoers.d is root-only, so report what sudo resolves rather than reading
+# the drop-in — and say so plainly instead of guessing when there is no cached
+# credential to ask with. A missing entry here is what makes `sudo hexarchy-*`
+# run the packaged copy of a command the checkout has changed.
+sudo_bin_dir() {
+  local resolved
+
+  if ! sudo -n true 2>/dev/null; then
+    echo "unknown (needs sudo)"
+    return
+  fi
+
+  resolved=$(sudo -n bash -c 'type -P hexarchy-dev-status' 2>/dev/null) || {
+    echo "not on sudo's PATH"
+    return
+  }
+
+  dirname "$resolved"
+}
+
+if (( linked )); then
+  echo "dev-link: configured"
+  echo "  /etc/hexarchy.conf -> HEXARCHY_PATH=$configured"
+  echo "  sudo resolves hexarchy-* from: $(sudo_bin_dir)"
+  echo "  status: reboot required before all session layers use this checkout"
+else
+  echo "dev-link: inactive"
+  if (( conf_present )); then
+    echo "  /etc/hexarchy.conf -> HEXARCHY_PATH=$configured (default guard)"
+  fi
+fi
+
+echo "  current shell:       HEXARCHY_PATH=${HEXARCHY_PATH:-<unset>}"
+
+if [[ ${HEXARCHY_PATH:-$default_target} != "$configured" ]]; then
+  echo
+  echo "Note: the running session does not match /etc/hexarchy.conf. Reboot to settle it."
+fi

@@ -9,7 +9,7 @@ import "ClipboardHistory.js" as ClipboardHistory
 Item {
   id: root
 
-  property string omarchyPath: Quickshell.env("OMARCHY_PATH")
+  property string hexarchyPath: Quickshell.env("HEXARCHY_PATH")
   property bool opened: false
   property string filterText: ""
   property int selectedIndex: 0
@@ -17,8 +17,8 @@ Item {
   property bool clearConfirmOpen: false
   property var history: []
 
-  property string historyPath: Quickshell.env("HOME") + "/.local/state/omarchy/clipboard-history.json"
-  property string captureScript: root.omarchyPath + "/shell/plugins/clipboard/capture.sh"
+  property string historyPath: Quickshell.env("HOME") + "/.local/state/hexarchy/clipboard-history.json"
+  property string captureScript: root.hexarchyPath + "/shell/plugins/clipboard/capture.sh"
   // Shares the [menu] surface tokens — themes that style the menu also
   // style the clipboard. Selected-row colors composed in the
   // singleton so consumers drop them straight into Rectangle bindings.
@@ -216,9 +216,9 @@ Item {
     if (!row) return
     root.opened = false
     if (row.entryType === "image") {
-      Quickshell.execDetached([root.omarchyPath + "/bin/omarchy-clipboard-paste-file", row.mime, row.path])
+      Quickshell.execDetached([root.hexarchyPath + "/bin/hexarchy-clipboard-paste-file", row.mime, row.path])
     } else if (row.fullText) {
-      Quickshell.execDetached([root.omarchyPath + "/bin/omarchy-clipboard-paste-text", "--shift-insert", "--history-index", String(row.historyIndex)])
+      Quickshell.execDetached([root.hexarchyPath + "/bin/hexarchy-clipboard-paste-text", "--shift-insert", "--history-index", String(row.historyIndex)])
     }
   }
 
@@ -226,16 +226,16 @@ Item {
     if (!row) return
     root.opened = false
     if (row.entryType === "image") {
-      Quickshell.execDetached([root.omarchyPath + "/bin/omarchy-clipboard-paste-file", "--copy-only", row.mime, row.path])
+      Quickshell.execDetached([root.hexarchyPath + "/bin/hexarchy-clipboard-paste-file", "--copy-only", row.mime, row.path])
     } else if (row.fullText) {
-      Quickshell.execDetached([root.omarchyPath + "/bin/omarchy-clipboard-paste-text", "--copy-only", "--history-index", String(row.historyIndex)])
+      Quickshell.execDetached([root.hexarchyPath + "/bin/hexarchy-clipboard-paste-text", "--copy-only", "--history-index", String(row.historyIndex)])
     }
   }
 
   function openSelected(row) {
     if (!row) return
     root.opened = false
-    Quickshell.execDetached([root.omarchyPath + "/bin/omarchy-clipboard-open", "--history-index", String(row.historyIndex)])
+    Quickshell.execDetached([root.hexarchyPath + "/bin/hexarchy-clipboard-open", "--history-index", String(row.historyIndex)])
   }
 
   Component.onCompleted: initProc.running = true
@@ -316,7 +316,7 @@ Item {
     visible: root.opened
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
-    WlrLayershell.namespace: "omarchy-clipboard"
+    WlrLayershell.namespace: "hexarchy-clipboard"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore
@@ -432,7 +432,6 @@ Item {
           color: "transparent"
 
           Text {
-            textFormat: Text.PlainText
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
@@ -501,7 +500,6 @@ Item {
                     }
 
                     Text {
-                      textFormat: Text.PlainText
                       width: parent.width - (parent.parent.previewImage.length > 0 ? parent.height + parent.spacing : 0)
                       height: parent.height
                       text: parent.parent.previewText
@@ -548,7 +546,6 @@ Item {
               }
 
               Text {
-                textFormat: Text.PlainText
                 visible: parent.activeRow && !parent.activeRow.previewImage
                 anchors.fill: parent
                 anchors.leftMargin: root.contentMargin
@@ -596,7 +593,6 @@ Item {
             }
 
             Text {
-              textFormat: Text.PlainText
               text: root.history.length === 0 ? "Clipboard is empty" : "No matches for “" + root.filterText + "”"
               color: root.foreground
               opacity: 0.7

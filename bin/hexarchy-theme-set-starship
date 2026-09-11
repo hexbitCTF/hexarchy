@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# hexarchy:summary=Apply theme colors to starship prompt
+# hexarchy:hidden=true
+
+STARSHIP_CONFIG="$HOME/.config/starship.toml"
+CURRENT_THEME="$HOME/.local/state/hexarchy/current/theme"
+
+[[ -f "$CURRENT_THEME/starship.toml" ]] || exit 0
+
+cp "$CURRENT_THEME/starship.toml" "$STARSHIP_CONFIG"

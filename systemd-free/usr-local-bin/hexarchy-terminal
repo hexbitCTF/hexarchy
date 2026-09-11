@@ -1,0 +1,4 @@
+#!/bin/bash
+# The configured terminal shortcut. Omarchy's default launcher points at the
+# terminal emulator via this name; on this system it resolves to kitty.
+exec kitty "$@"

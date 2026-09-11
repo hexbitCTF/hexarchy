@@ -6,10 +6,10 @@ source "$(dirname "$0")/base-test.sh"
 
 envs="$ROOT/default/bash/envs"
 uwsm_default="$ROOT/default/uwsm/default"
-uwsm_env="$ROOT/default/uwsm/env.d/10-omarchy"
+uwsm_env="$ROOT/default/uwsm/env.d/10-hexarchy"
 
 browser=$(env -u BROWSER bash -c 'source "$1"; printf "%s" "$BROWSER"' bash "$envs")
-[[ $browser == "omarchy-launch-browser" ]] || fail "bash env provides a default browser" "actual: $browser"
+[[ $browser == "hexarchy-launch-browser" ]] || fail "bash env provides a default browser" "actual: $browser"
 pass "bash env provides a default browser"
 
 browser=$(BROWSER=firefox bash -c 'source "$1"; printf "%s" "$BROWSER"' bash "$envs")

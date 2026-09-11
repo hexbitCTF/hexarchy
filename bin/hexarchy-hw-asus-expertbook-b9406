@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# hexarchy:summary=Detect ASUS ExpertBook B9406 series laptops on Intel Panther Lake.
+
+hexarchy-hw-match "B9406" && hexarchy-hw-intel-ptl

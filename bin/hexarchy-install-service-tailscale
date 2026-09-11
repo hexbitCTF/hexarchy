@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# hexarchy:summary=Install the Tailscale mesh VPN service and a web app for the Tailscale Admin Console.
+# hexarchy:requires-sudo=true
+
+echo -e "\nInstalling Tailscale..."
+hexarchy-pkg-add tailscale
+
+echo -e "\nStarting Tailscale..."
+sudo ln -s /etc/runit/sv/tailscaled /run/runit/service/
+sudo sv start tailscaled
+sudo tailscale up --accept-routes
+
+echo -e "\nAllowing $USER to manage Tailscale..."
+sudo tailscale set --operator="$USER"
+
+echo -e "\nReceiving Taildrop files in $HOME/Downloads..."
+ln -s "$HEXARCHY_PATH/default/runit/sv/hexarchy-tailscale-receive" "${XDG_RUNTIME_DIR:-/run/user/$UID}/service/" 2>/dev/null || true
+sv start hexarchy-tailscale-receive
+
+echo -e "\nAdding Tailscale to the bar..."
+hexarchy-plugin-enable hexarchy.tailscale
+
+hexarchy-webapp-install "Tailscale" "https://login.tailscale.com/admin/machines" https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tailscale-light.png

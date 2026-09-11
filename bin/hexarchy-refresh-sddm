@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# hexarchy:summary=Refresh the SDDM theme from default
+# hexarchy:requires-sudo=true
+
+sudo rm -rf /usr/share/sddm/themes/hexarchy
+sudo cp -r "$HEXARCHY_PATH/default/sddm/hexarchy" /usr/share/sddm/themes/hexarchy

@@ -6,7 +6,7 @@ import qs.Ui
 
 BarWidget {
   id: root
-  moduleName: "omarchy.active-window"
+  moduleName: "hexarchy.active-window"
 
 
   readonly property var toplevel: ToplevelManager.activeToplevel
@@ -29,7 +29,6 @@ BarWidget {
 
     Text {
       id: labelText
-      textFormat: Text.PlainText
       anchors.verticalCenter: parent.verticalCenter
       anchors.left: parent.left
       width: parent.width

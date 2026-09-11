@@ -1,0 +1,55 @@
+# Hexarchy hardware/optional packages for Artix Linux (runit)
+# These are installed outside of the base package list
+
+autoconf-archive
+btrfs-progs
+dkms
+egl-wayland
+gst-plugin-pipewire
+gtk4-layer-shell
+libpulse
+intel-ipu7-camera
+intel-lpmd
+intel-media-driver
+libva-intel-driver
+libva-nvidia-driver
+limine
+limine-mkinitcpio-hook
+limine-snapper-sync
+linux
+linux-firmware
+linux-headers
+nvidia-580xx-dkms
+nvidia-dkms
+nvidia-open-dkms
+nvidia-580xx-utils
+nvidia-utils
+lib32-nvidia-580xx-utils
+lib32-nvidia-utils
+snapper
+snapper-runit
+thermald
+webp-pixbuf-loader
+zramen
+
+# Intel encoding processing
+libvpl
+vpl-gpu-rt
+
+# Vulkan drivers (auto-detected by hardware)
+vulkan-intel
+vulkan-radeon
+
+# Runit-specific service packages
+elogind-runit
+dbus-runit
+sddm-runit
+networkmanager-runit
+avahi-runit
+cups-runit
+docker-runit
+ufw-runit
+openssh-runit
+dnscrypt-proxy-runit
+power-profiles-daemon-runit
+polkit-runit

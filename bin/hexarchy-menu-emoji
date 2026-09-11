@@ -1,0 +1,6 @@
+#!/bin/bash
+# hexarchy:summary=Launch emojis
+# hexarchy:group=menu
+# hexarchy:examples=hexarchy menu emoji
+
+hexarchy-shell shell toggle hexarchy.emojis

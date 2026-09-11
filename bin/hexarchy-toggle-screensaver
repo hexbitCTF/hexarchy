@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# hexarchy:summary=Toggle screensaver availability
+
+hexarchy-toggle screensaver-off
+
+if hexarchy-toggle-enabled screensaver-off; then
+  hexarchy-notification-send -g 󱄄 "Screensaver disabled"
+else
+  hexarchy-notification-send -g 󱄄 "Screensaver enabled"
+fi

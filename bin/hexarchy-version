@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# hexarchy:summary=Print the installed Hexarchy version
+
+hexarchy_path=${HEXARCHY_PATH:-/usr/share/hexarchy}
+hexarchy_path=${hexarchy_path%/}
+
+if [[ $hexarchy_path != "/usr/share/hexarchy" ]]; then
+  hash=$(git -C "$hexarchy_path" rev-parse --short HEAD 2>/dev/null || true)
+
+  if [[ -n $hash ]]; then
+    echo "dev ($hash)"
+  else
+    echo "dev"
+  fi
+
+  exit 0
+fi
+
+# The edge channel installs hexarchy-dev instead of hexarchy, so check both.
+for package in hexarchy-dev hexarchy; do
+  version=$(pacman -Q "$package" 2>/dev/null | awk '{ print $2 }')
+  [[ -n $version ]] && break
+done
+
+[[ -n $version ]] || exit 1
+
+echo "$version"

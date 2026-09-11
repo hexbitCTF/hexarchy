@@ -10,7 +10,7 @@ require_command lua
 # scaled display, so it is worth pinning down.
 # base-test.sh does not set -e, so the assertions have to fail the file
 # themselves rather than leaving the pass below to run regardless.
-OMARCHY_PATH="$ROOT" lua - <<'LUA' || fail "the console covers half the work area at any monitor scale"
+HEXARCHY_PATH="$ROOT" lua - <<'LUA' || fail "the console covers half the work area at any monitor scale"
 local rules, handlers = {}, {}
 local monitor = nil
 
@@ -22,7 +22,7 @@ hl = {
   get_active_monitor = function() return monitor end,
 }
 
-dofile(os.getenv("OMARCHY_PATH") .. "/default/hypr/bootstrap.lua")
+dofile(os.getenv("HEXARCHY_PATH") .. "/default/hypr/bootstrap.lua")
 require("default.hypr.qconsole")
 
 local function current()
@@ -32,7 +32,7 @@ end
 -- Config loads before the outputs are up, so the first pass has no monitor to
 -- read. It still has to leave a rule behind, or the console would open unseeded.
 assert(#rules > 0, "console is ruled even before a monitor can be read")
-assert(current().on_created_empty:find("omarchy%-agent"), "console is seeded with the default agent")
+assert(current().on_created_empty:find("hexarchy%-agent"), "console is seeded with the default agent")
 assert(current().on_created_empty:find("^%[workspace special:scratchpad silent%]"),
   "the seed is pinned to the console rather than trusting the spawn to inherit it")
 assert(current().workspace == "special:scratchpad")
@@ -57,7 +57,7 @@ assert(rescale(1440, 1, 0) == 720, "a monitor with nothing reserved")
 local final = current()
 assert(final.gaps_out.top == 0 and final.gaps_out.left == 0 and final.gaps_out.right == 0,
   "the console is flush to the top and sides")
-assert(final.on_created_empty:find("omarchy%-agent"), "refitting keeps the console seeded")
+assert(final.on_created_empty:find("hexarchy%-agent"), "refitting keeps the console seeded")
 assert(final.no_border == true, "the console drops the active window border")
 
 -- A monitor that cannot be read must not wipe the last good rule.

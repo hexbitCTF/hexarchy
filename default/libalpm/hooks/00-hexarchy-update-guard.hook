@@ -1,0 +1,11 @@
+[Trigger]
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = Checking Hexarchy update entrypoint...
+When = PreTransaction
+Depends = hexarchy
+Exec = /usr/bin/hexarchy-update-pacman-guard
+AbortOnFail

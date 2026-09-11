@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# hexarchy:summary=Open the hexarchy-shell dev gallery (qs.Ui kit preview)
+# hexarchy:args=[section]
+# hexarchy:examples=hexarchy dev ui-preview | hexarchy dev ui-preview button | hexarchy dev ui-preview button-group | hexarchy dev ui-preview slider
+#
+# Pass a section name to jump straight to that component instead of
+# scrolling from the top. Section names match the cursor section ids in
+# shell/plugins/dev-gallery/GalleryPanel.qml — `button`, `button-group`,
+# `cursor-surface`, `slider`, `toggle`, `dropdown`, etc. Unknown names
+# are ignored and the gallery opens at its normal default position.
+
+if (( $# > 0 )) && [[ -n $1 ]]; then
+  section="$1"
+  payload=$(printf '{"section":"%s"}' "${section//\"/}")
+else
+  payload='{}'
+fi
+
+hexarchy-shell shell summon hexarchy.dev-gallery "$payload"

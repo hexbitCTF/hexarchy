@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# hexarchy:summary=Restore the default Hexarchy Plymouth boot theme and SDDM login screen
+# hexarchy:requires-sudo=true
+
+hexarchy-refresh-plymouth
+hexarchy-refresh-sddm

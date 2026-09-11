@@ -4,7 +4,7 @@ set -euo pipefail
 
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/base-test.sh"
 
-remove="$ROOT/bin/omarchy-remove-security-fido2"
+remove="$ROOT/bin/hexarchy-remove-security-fido2"
 
 test_tmp=$(mktemp -d)
 stub_bin="$test_tmp/bin"
@@ -71,11 +71,11 @@ case "${1:-}" in
 esac
 SH
 
-cat >"$stub_bin/omarchy-pkg-drop" <<'SH'
+cat >"$stub_bin/hexarchy-pkg-drop" <<'SH'
 #!/bin/bash
 SH
 
-chmod +x "$stub_bin/sudo" "$stub_bin/omarchy-pkg-drop"
+chmod +x "$stub_bin/sudo" "$stub_bin/hexarchy-pkg-drop"
 
 invoke_remove() {
   : >"$calls"

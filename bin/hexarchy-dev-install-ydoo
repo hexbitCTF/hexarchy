@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# hexarchy:summary=Install and enable ydotool mouse automation for Hexarchy development
+# hexarchy:requires-sudo=true
+
+set -euo pipefail
+
+RULE_FILE="/etc/udev/rules.d/80-uinput.rules"
+
+if ! getent group input >/dev/null; then
+  echo "hexarchy-dev-install-ydoo: input group does not exist" >&2
+  exit 1
+fi
+
+if ! id -nG "$USER" | tr ' ' '\n' | grep -x input >/dev/null; then
+  echo "Adding $USER to the input group. You may need to log out and back in before this applies."
+  pkexec usermod -aG input "$USER"
+fi
+
+if hexarchy-cmd-missing ydotool || hexarchy-pkg-missing ydotool; then
+  hexarchy-pkg-add ydotool
+fi
+
+pkexec /bin/bash -c '
+set -euo pipefail
+
+cat >"'"$RULE_FILE"'" <<'"'"'EOF'"'"'
+KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"
+EOF
+
+modprobe uinput
+udevadm control --reload-rules
+udevadm trigger /dev/uinput 2>/dev/null || true
+
+if [[ -e /dev/uinput ]]; then
+  chgrp input /dev/uinput
+  chmod 0660 /dev/uinput
+fi
+'
+
+sv restart ydotool 2>/dev/null || true
+sv start ydotool
+
+if ! sv check ydotool 2>/dev/null; then
+  echo "hexarchy-dev-install-ydoo: ydotool did not start" >&2
+  sv status ydotool >&2 || true
+  exit 1
+fi
+
+echo "ydotool is ready."

@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# hexarchy:summary=Apply Hexarchy system setup in the installed target
+# hexarchy:group=apply
+# hexarchy:requires-sudo=true
+# hexarchy:examples=hexarchy apply system --install-user dhh --first-install
+# hexarchy:hidden=true
+
+set -euo pipefail
+
+usage() {
+  cat <<USAGE
+Usage: hexarchy apply system --install-user USER [--first-install|--upgrade]
+       hexarchy apply system --defer-provisioning --first-install
+
+Runs root-owned Hexarchy system setup. The ISO calls this in the target chroot
+after packages are installed and the target user exists. It also calls
+hexarchy-apply-hardware, so hardware setup cannot be accidentally skipped.
+
+--defer-provisioning runs without an install user: deferred-provisioning installs create the user at
+first boot, so scripts that grant group memberships record them in
+/var/lib/hexarchy/provisioning/groups instead of calling usermod.
+USAGE
+}
+
+install_user="${HEXARCHY_INSTALL_USER:-}"
+first_install=0
+upgrade=0
+defer_provisioning=0
+
+while (($#)); do
+  case "$1" in
+    --install-user)
+      install_user="${2:-}"
+      shift 2
+      ;;
+    --defer-provisioning)
+      defer_provisioning=1
+      shift
+      ;;
+    --first-install)
+      first_install=1
+      shift
+      ;;
+    --upgrade)
+      upgrade=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+if (( EUID != 0 )); then
+  echo "Error: hexarchy-apply-system must run as root" >&2
+  exit 1
+fi
+
+if (( defer_provisioning )); then
+  install_user=""
+else
+  if [[ -z $install_user || $install_user == "root" ]]; then
+    echo "Error: --install-user must name the target non-root user" >&2
+    exit 1
+  fi
+
+  if ! getent passwd "$install_user" >/dev/null; then
+    echo "Error: user '$install_user' does not exist" >&2
+    exit 1
+  fi
+fi
+
+export HEXARCHY_INSTALL_USER="$install_user"
+export HEXARCHY_FIRST_INSTALL="$first_install"
+export HEXARCHY_UPGRADE="$upgrade"
+export HEXARCHY_PATH="${HEXARCHY_PATH:-/usr/share/hexarchy}"
+export HEXARCHY_INSTALL="${HEXARCHY_INSTALL:-$HEXARCHY_PATH/install}"
+export HEXARCHY_INSTALL_LOG_FILE="${HEXARCHY_INSTALL_LOG_FILE:-/var/log/hexarchy-install.log}"
+export PATH="$HEXARCHY_PATH/bin:$PATH"
+
+source "$HEXARCHY_INSTALL/helpers/logging.sh"
+start_install_log
+
+source "$HEXARCHY_INSTALL/config/all.sh"
+
+if (( defer_provisioning )); then
+  hexarchy-apply-hardware --defer-provisioning
+else
+  hexarchy-apply-hardware --install-user "$install_user"
+fi
+
+source "$HEXARCHY_INSTALL/login/all.sh"
+source "$HEXARCHY_INSTALL/post-install/all.sh"
+
+stop_install_log

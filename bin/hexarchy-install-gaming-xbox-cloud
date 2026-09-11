@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# hexarchy:summary=Install Xbox Cloud Gaming as a web app and launch it.
+# hexarchy:group=install
+# hexarchy:name=gaming xbox-cloud
+
+set -e
+
+echo "Installing Xbox Cloud Gaming..."
+hexarchy-webapp-install "Xbox Cloud Gaming" "https://www.xbox.com/en-US/play" "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/xbox.png"
+
+setsid hexarchy-launch-webapp "https://www.xbox.com/en-US/play" >/dev/null 2>&1 &

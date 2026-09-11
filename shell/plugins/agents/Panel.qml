@@ -7,8 +7,8 @@ import qs.Ui
 
 Panel {
   id: root
-  moduleName: "omarchy.agents"
-  ipcTarget: "omarchy.agents"
+  moduleName: "hexarchy.agents"
+  ipcTarget: "hexarchy.agents"
   manageIpc: false
 
   readonly property color foreground: bar ? bar.foreground : Color.foreground
@@ -60,7 +60,7 @@ Panel {
   }
 
   function launchAgent() {
-    if (root.bar) root.bar.run("omarchy-agent --pick")
+    if (root.bar) root.bar.run("hexarchy-agent --pick")
     root.close()
   }
 
@@ -434,7 +434,6 @@ Panel {
                 }
 
                 Text {
-                  textFormat: Text.PlainText
                   anchors.centerIn: parent
                   visible: heroMarkImage.status !== Image.Ready
                   text: button.text
@@ -505,7 +504,6 @@ Panel {
 
             Text {
               id: statusText
-              textFormat: Text.PlainText
               anchors.left: parent.left
               anchors.right: parent.right
               anchors.verticalCenter: parent.verticalCenter
@@ -560,7 +558,6 @@ Panel {
 
               Text {
                 id: balanceValue
-                textFormat: Text.PlainText
                 text: root.balance ? root.formatMoney(root.balance.remaining, root.balance.currency) : ""
                 color: root.balanceAlarming ? root.urgent : root.foreground
                 font.family: root.fontFamily
@@ -578,7 +575,6 @@ Panel {
             }
 
             Text {
-              textFormat: Text.PlainText
               visible: text !== ""
               width: parent.width
               text: root.balanceDetailText(root.balance)
@@ -684,7 +680,6 @@ Panel {
           }
 
           Text {
-            textFormat: Text.PlainText
             visible: text !== ""
             width: parent.width
             topPadding: Style.space(2)
@@ -715,7 +710,6 @@ Panel {
 
       Text {
         id: limitLabel
-        textFormat: Text.PlainText
         // A model-scoped window is titled after its model, and those names run
         // long enough to reach the percentage, so the title gives way first.
         text: limitRow.window ? limitRow.window.title : ""
@@ -731,7 +725,6 @@ Panel {
 
       Text {
         id: limitValue
-        textFormat: Text.PlainText
         text: limitRow.window && limitRow.window.percent >= 0
           ? Math.round(limitRow.window.percent * 100) + "%"
           : "—"
@@ -751,7 +744,6 @@ Panel {
 
     Text {
       id: resetText
-      textFormat: Text.PlainText
       width: parent.width
       text: {
         var remainingMs = root.resetMsFor(limitRow.window)
@@ -806,7 +798,6 @@ Panel {
 
     Text {
       id: dayLabel
-      textFormat: Text.PlainText
       text: root.dayLabel(dayRow.day ? dayRow.day.date : "", dayRow.today)
       color: dayRow.today ? root.foreground : root.dim
       font.family: root.fontFamily
@@ -844,7 +835,6 @@ Panel {
 
     Text {
       id: dayValue
-      textFormat: Text.PlainText
       text: usage.formatTokenCount(dayRow.day ? Number(dayRow.day.messageCount || 0) : 0)
       color: dayRow.today ? root.foreground : root.dim
       font.family: root.fontFamily
@@ -900,7 +890,6 @@ Panel {
 
     Text {
       id: modelName
-      textFormat: Text.PlainText
       text: modelRow.row ? modelRow.row.name : ""
       color: root.foreground
       font.family: root.fontFamily
@@ -915,7 +904,6 @@ Panel {
 
     Text {
       id: modelTokens
-      textFormat: Text.PlainText
       text: modelRow.row ? usage.formatTokenCount(modelRow.row.total) : ""
       color: root.dim
       font.family: root.fontFamily

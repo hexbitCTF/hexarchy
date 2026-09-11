@@ -9,13 +9,13 @@ import "MenuModel.js" as MenuModel
 Item {
   id: root
 
-  // Injected by omarchy-shell when this plugin is summoned.
-  property string omarchyPath: Quickshell.env("OMARCHY_PATH")
+  // Injected by hexarchy-shell when this plugin is summoned.
+  property string hexarchyPath: Quickshell.env("HEXARCHY_PATH")
   property var shell: null
   property var manifest: null
 
   // Plugin lifecycle hooks. The host calls open(payloadJson) after
-  // `omarchy-shell shell summon omarchy.menu ...` and close() when hidden.
+  // `hexarchy-shell shell summon hexarchy.menu ...` and close() when hidden.
   property string pendingInitialMenu: "root"
 
   function open(payloadJson) {
@@ -47,8 +47,8 @@ Item {
   // JSONC menu definitions. The shell parses both at startup and merges
   // the user file on top of the defaults, so the keybind → IPC → visible
   // path doesn't have to shell out to bash + jq on every open.
-  property string defaultMenuPath: omarchyPath + "/default/omarchy/omarchy-menu.jsonc"
-  property string userMenuPath: Quickshell.env("HOME") + "/.config/omarchy/extensions/omarchy-menu.jsonc"
+  property string defaultMenuPath: hexarchyPath + "/default/hexarchy/hexarchy-menu.jsonc"
+  property string userMenuPath: Quickshell.env("HOME") + "/.config/hexarchy/extensions/hexarchy-menu.jsonc"
   property var defaultMenuItems: []
   property var userMenuItems: []
   property bool opened: false
@@ -268,15 +268,15 @@ Item {
   // shell started shows up without restarting it.
   readonly property var providers: ({
     "fonts": {
-      script: "current=$(omarchy-font-current 2>/dev/null); omarchy-font-list 2>/dev/null | while read -r f; do [[ -z $f ]] && continue; printf '%s\\t%s\\t%s\\n' \"$f\" \"$f\" \"$current\"; done",
+      script: "current=$(hexarchy-font-current 2>/dev/null); hexarchy-font-list 2>/dev/null | while read -r f; do [[ -z $f ]] && continue; printf '%s\\t%s\\t%s\\n' \"$f\" \"$f\" \"$current\"; done",
       icon: "",
       volatile: true,
-      actionFor: function(value) { return "omarchy-font-set " + Util.shellQuote(value) }
+      actionFor: function(value) { return "hexarchy-font-set " + Util.shellQuote(value) }
     },
     "power-profiles": {
-      script: "current=$(powerprofilesctl get 2>/dev/null); omarchy-powerprofiles-list 2>/dev/null | while read -r p; do [[ -z $p ]] && continue; printf '%s\\t%s\\t%s\\n' \"$p\" \"$p\" \"$current\"; done",
+      script: "current=$(powerprofilesctl get 2>/dev/null); hexarchy-powerprofiles-list 2>/dev/null | while read -r p; do [[ -z $p ]] && continue; printf '%s\\t%s\\t%s\\n' \"$p\" \"$p\" \"$current\"; done",
       icon: "\udb81\udc0b",
-      actionFor: function(value) { return "omarchy-powerprofiles-set autodetect " + Util.shellQuote(value) }
+      actionFor: function(value) { return "hexarchy-powerprofiles-set autodetect " + Util.shellQuote(value) }
     }
   })
 
@@ -884,7 +884,7 @@ Item {
   // ----------------------------------------------------------- route surface
   //
   // The menu is opened through the standard plugin lifecycle:
-  // `omarchy-shell shell summon omarchy.menu '{"menu":"system"}'`.
+  // `hexarchy-shell shell summon hexarchy.menu '{"menu":"system"}'`.
   // Callers may pass a real id (`system`, `setup.power`) or an alias declared
   // in JSONC (`power`, `reminder-set`). Unknown strings fall through to the
   // id-as-route behavior so misspellings still attempt to open the literal id.
@@ -896,7 +896,7 @@ Item {
     var id = root.resolveRoute(initialMenu)
     var entry = root.items[id]
     // If the resolved id is an action (i.e. the user invoked an alias for
-    // a leaf, e.g. `omarchy menu summon screenrecord-stop`), run it directly
+    // a leaf, e.g. `hexarchy menu summon screenrecord-stop`), run it directly
     // instead of opening an action with no children.
     if (entry && entry.kind === "action" && entry.action) {
       root.cancel()
@@ -960,7 +960,7 @@ Item {
   }
 
   // The JSONC sources are watched so live edits to the default file (or the
-  // user extension at ~/.config/omarchy/extensions/omarchy-menu.jsonc) take
+  // user extension at ~/.config/hexarchy/extensions/hexarchy-menu.jsonc) take
   // effect without restarting the shell.
   FileView {
     id: defaultMenuFile
@@ -1067,7 +1067,7 @@ Item {
     visible: root.opened && root.rowsLoaded
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
-    WlrLayershell.namespace: "omarchy-menu"
+    WlrLayershell.namespace: "hexarchy-menu"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore
@@ -1199,7 +1199,6 @@ Item {
           color: "transparent"
 
           Text {
-            textFormat: Text.PlainText
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
@@ -1288,7 +1287,6 @@ Item {
 
               Text {
                 id: iconText
-                textFormat: Text.PlainText
                 visible: row.hasIcon && !row.isApp
                 text: row.icon
                 color: row.hasCursor ? root.selectedText : root.foreground
@@ -1330,7 +1328,6 @@ Item {
 
                 Text {
                   id: labelText
-                  textFormat: Text.PlainText
                   width: parent.width
                   text: row.label
                   color: row.hasCursor ? root.selectedText : root.foreground
@@ -1341,7 +1338,6 @@ Item {
                 }
 
                 Text {
-                  textFormat: Text.PlainText
                   width: parent.width
                   text: row.detail
                   visible: (root.filterText || row.kind === "dmenu") && row.detail.length > 0
@@ -1362,7 +1358,6 @@ Item {
                 spacing: 0
 
                 Text {
-                  textFormat: Text.PlainText
                   visible: false
                   text: row.childCount
                   color: root.foreground
@@ -1373,7 +1368,6 @@ Item {
                 }
 
                 Text {
-                  textFormat: Text.PlainText
                   text: row.kind === "menu" || row.kind === "link" ? "›" : ""
                   color: row.hasCursor ? root.selectedText : root.foreground
                   opacity: row.kind === "menu" || row.kind === "link" ? 0.36 : 0
@@ -1458,7 +1452,6 @@ Item {
             }
 
             Text {
-              textFormat: Text.PlainText
               text: root.filterText ? "No matches for “" + root.filterText + "”" : "Nothing here yet"
               color: root.foreground
               opacity: 0.7

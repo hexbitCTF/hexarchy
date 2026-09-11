@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# hexarchy:summary=Install the ONCE service, enable its background service, and launch the TUI.
+# hexarchy:requires-sudo=true
+
+echo "Installing ONCE..."
+hexarchy-pkg-add once-bin
+
+echo "Enabling ONCE background service..."
+sudo ln -s /etc/runit/sv/once-background /run/runit/service/
+sudo sv start once-background
+
+echo -e "\nLaunching ONCE..."
+once

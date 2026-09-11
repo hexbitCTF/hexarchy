@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# hexarchy:summary=Reinstall Hexarchy packages and reset default configs
+# hexarchy:requires-sudo=true
+
+set -e
+
+echo -e "This will reinstall all default Hexarchy packages and reset default configs.\nWarning: user config changes will be overwritten.\n"
+
+if gum confirm "Are you sure you want to reinstall and lose config changes?"; then
+  hexarchy-reinstall-pkgs
+  hexarchy-reinstall-configs
+
+  gum confirm "System has been reinstalled. Reboot?" && hexarchy-system-reboot
+fi

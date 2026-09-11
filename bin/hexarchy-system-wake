@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# hexarchy:summary=Wake displays and restore brightness after idle
+# hexarchy:group=system
+# hexarchy:name=wake
+# hexarchy:examples=hexarchy system wake
+
+hexarchy-brightness-display on
+hexarchy-brightness-keyboard restore
+# hyprmoncfgd owns monitor/lid policy on this system. Hexarchy's clamshell
+# helper force-enables the internal panel (scale 2) when run, which fights the
+# active profile and makes eDP-1 flicker on every lock/wake. Disabled here so
+# waking only restores brightness; the lid bindings are similarly unbound.
+# hexarchy-hyprland-monitor-clamshell >/dev/null 2>&1 || true

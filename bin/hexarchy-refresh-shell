@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# hexarchy:summary=Reset shell.json to Hexarchy defaults
+# hexarchy:examples=hexarchy refresh shell
+
+set -euo pipefail
+
+hexarchy-refresh-config hexarchy/shell.json
+hexarchy-bar defaults
+
+hexarchy-restart-shell

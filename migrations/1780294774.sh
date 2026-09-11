@@ -1,12 +1,12 @@
 echo "Remove leading zero from bar clock date"
 
-config_file="$HOME/.config/omarchy/shell.json"
+config_file="$HOME/.config/hexarchy/shell.json"
 
-if [[ -f $config_file ]] && omarchy-cmd-present jq; then
+if [[ -f $config_file ]] && hexarchy-cmd-present jq; then
   tmp=$(mktemp)
   jq '
     def update_clock_format:
-      if type == "object" and (.id // "") == "omarchy.clock" and (.formatAlt // "") == "dd MMMM \u0027W\u0027ww yyyy" then
+      if type == "object" and (.id // "") == "hexarchy.clock" and (.formatAlt // "") == "dd MMMM \u0027W\u0027ww yyyy" then
         .formatAlt = "d MMMM \u0027W\u0027ww yyyy"
       else
         .
