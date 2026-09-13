@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# hexarchy:summary=Hibernate the system if supported (elogind, systemd-free)
+
+if ! hexarchy-hibernation-available; then
+  hexarchy-notification-send -g 󰁵 "Hibernation unavailable" "No resume image (swap) or hexarchy_resume.conf present."
+  exit 1
+fi
+
+# Schedule it so closing the terminal cannot interrupt it. logind also delivers
+# PrepareForSleep, which hexarchy-system-sleep-lock turns into a lock.
+( sleep 2; loginctl hibernate ) &
+
+hexarchy-osd -i hibernate -m "Hibernating" -d 5000

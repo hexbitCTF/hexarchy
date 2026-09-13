@@ -35,8 +35,8 @@
   // System
   "system.screensaver": {"icon":"󱄄","label":"Screensaver","action":"hexarchy-launch-screensaver force"},
   "system.lock": {"icon":"","label":"Lock","action":"hexarchy-system-lock"},
-  "system.suspend": {"icon":"󰒲","label":"Suspend","when":"! hexarchy-toggle-enabled suspend-off","action":"systemctl suspend"},
-  "system.hibernate": {"icon":"󰤁","label":"Hibernate","when":"hexarchy-hibernation-available","action":"systemctl hibernate"},
+  "system.suspend": {"icon":"󰒲","label":"Suspend","when":"! hexarchy-toggle-enabled suspend-off","action":"hexarchy-system-suspend"},
+  "system.hibernate": {"icon":"󰤁","label":"Hibernate","when":"hexarchy-hibernation-available","action":"hexarchy-system-hibernate"},
   "system.logout": {"icon":"󰍃","label":"Logout","action":"hexarchy-system-logout"},
   "system.reboot": {"icon":"󰜉","label":"Reboot","action":"hexarchy-system-reboot"},
   "system.shutdown": {"icon":"󰐥","label":"Shutdown","action":"hexarchy-system-shutdown"},

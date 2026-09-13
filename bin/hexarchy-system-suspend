@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# hexarchy:summary=Suspend the system (elogind, systemd-free)
+
+# Schedule the suspend so closing the terminal cannot interrupt it. logind also
+# delivers PrepareForSleep, which hexarchy-system-sleep-lock turns into a lock.
+( sleep 2; loginctl suspend ) &
+
+hexarchy-osd -i suspend -m "Suspending" -d 3000
