@@ -37,6 +37,19 @@ git clone https://github.com/hexbitCTF/hexarchy.git /tmp/hexarchy
 sudo bash /tmp/hexarchy/install/setup.sh
 ```
 
+Already running Artix with a different window manager or desktop (dwm, i3,
+sway, GNOME/KDE/XFCE…)? `install/to-hexarchy.sh` swaps in Hexarchy without
+touching your files — conflicting packages and services are stopped, your old
+configs are backed up, and everything is logged.
+
+```sh
+bash install/to-hexarchy.sh --dry-run   # preview conflicts, change nothing
+bash install/to-hexarchy.sh             # migrate (keeps your configs, stops conflicts)
+bash install/to-hexarchy.sh --remove-conflicts   # also uninstall the old WM/DE/DM
+```
+
+Stop by `install/setup.sh` alone to skip the old-desktop cleanup.
+
 ## Repository Structure
 
 ```
