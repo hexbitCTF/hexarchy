@@ -33,7 +33,7 @@ Hexarchy brings the same stunning Hyprland + Quickshell desktop experience to a 
 
 ```sh
 # On a fresh Artix Linux (runit) installation:
-git clone https://github.com/hexbit/hexarchy.git /tmp/hexarchy
+git clone https://github.com/hexbitCTF/hexarchy.git /tmp/hexarchy
 sudo bash /tmp/hexarchy/install/setup.sh
 ```
 
