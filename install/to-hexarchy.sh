@@ -23,6 +23,12 @@
 #   --skip-setup         Only detect/handle conflicts; do not run install/setup.sh
 #   --yes                Skip the confirmation prompt
 #   -h|--help            Show this help
+#
+# Everything you own is preserved: shell dotfiles (.bashrc/.zshrc/.profile/...),
+# X resources, editor/tmux/git config, WM/DE config dirs, session scripts and
+# autostart entries are moved (never deleted) into the backup directory. A
+# manifest there is the source of truth for the rollback script:
+#   bash install/rollback-hexarchy.sh
 
 set -u
 
@@ -81,12 +87,15 @@ fi
 if (( DRY_RUN )); then
   REPORT_FILE=""
   BACKUP_DIR=""
+  MANIFEST=""
 else
   TS="$(date '+%Y%m%d-%H%M%S')"
   REPORT_DIR="/var/log/hexarchy-migration-$TS"
   BACKUP_DIR="/root/hexarchy-migration-backup-$TS"
   REPORT_FILE="$REPORT_DIR/migration.log"
+  MANIFEST="$BACKUP_DIR/manifest.txt"
   mkdir -p "$REPORT_DIR" "$BACKUP_DIR" 2>/dev/null || die "cannot create $REPORT_DIR"
+  : > "$MANIFEST"
 fi
 
 # --- Target user ------------------------------------------------------------
@@ -115,6 +124,39 @@ note() { log "note: $*"; }
 warn() { log "warning: $*"; }
 err() { log "error: $*"; }
 
+# Manifest: one tab-separated record per line, consumed by
+# install/rollback-hexarchy.sh. Types:
+#   F   moved file/dir:  F <original path> <backup basename>
+#   S   disabled service: S <runit service name>
+#   G   user groups before migration: G <user> <original comma-groups>
+#   P   removed package: P <package>
+
+record_file() {
+  [[ -n "$BACKUP_DIR" ]] || return 0
+  printf 'F\t%s\t%s\n' "$1" "$2" >> "$MANIFEST"
+}
+
+record_service() {
+  [[ -n "$BACKUP_DIR" ]] || return 0
+  printf 'S\t%s\n' "$1" >> "$MANIFEST"
+}
+
+record_groups() {
+  [[ -n "$BACKUP_DIR" ]] || return 0
+  printf 'G\t%s\t%s\n' "$1" "$2" >> "$MANIFEST"
+}
+
+record_pkg() {
+  [[ -n "$BACKUP_DIR" ]] || return 0
+  printf 'P\t%s\n' "$1" >> "$MANIFEST"
+}
+
+record_header() {
+  [[ -n "$BACKUP_DIR" ]] || return 0
+  printf '# Hexarchy migration manifest %s\n' "$(date '+%F %T')" >> "$MANIFEST"
+  printf '# target user: %s (%s)\n' "$1" "$2" >> "$MANIFEST"
+}
+
 mv_to_backup() {
   local src="$1" why="$2" dest
   dest="${BACKUP_DIR}/$(echo "${src#/}" | tr '/' '_')"
@@ -125,6 +167,7 @@ mv_to_backup() {
   [[ -e "$src" ]] || { note "skip $src: does not exist"; return 0; }
   mv "$src" "$dest" && {
     log "backed up: $src -> $dest ($why)"
+    record_file "$src" "$(basename "$dest")"
     return 0
   }
   err "failed to back up $src ($why)"
@@ -218,7 +261,10 @@ disable_runit_service() {
   fi
   local link="/etc/runit/runsvdir/default/$name"
   if [[ -L "$link" ]]; then
-    rm -f "$link" && log "disabled runit service: $name ($link removed)"
+    rm -f "$link" && {
+      log "disabled runit service: $name ($link removed)"
+      record_service "$name"
+    }
   elif [[ -n "${target:-}" ]]; then
     note "service $name exists but was not enabled; left alone"
   else
@@ -246,19 +292,32 @@ handle_package_conflict() {
   fi
   if pacman -Rns --noconfirm "$pkg" >>"$REPORT_FILE" 2>&1; then
     log "removed package: $pkg"
+    record_pkg "$pkg"
   else
     err "could not remove package: $pkg (see report); leaving it installed"
   fi
 }
 
 handle_file_conflicts() {
-  local f bin wilds
+  local f bin wilds dots
   [[ -n "$TARGET_HOME" ]] || return 0
+  # Session launch scripts.
   for f in .xinitrc .xsession .xprofile; do
     [[ -f "$TARGET_HOME/$f" ]] && mv_to_backup "$TARGET_HOME/$f" "old session launch script"
   done
-  for f in .Xresources .Xdefaults; do
-    [[ -f "$TARGET_HOME/$f" ]] && note "kept $TARGET_HOME/$f (passive X resource file; harmless under Hyprland)"
+  # Shell + editor/tmux/git/X dotfiles (Hexarchy fills in defaults if these
+  # are absent, so originals are worth keeping even when untouched).
+  dots=(.bashrc .bash_profile .bash_login .bash_logout .profile \
+        .zshrc .zshenv .zprofile .zlogin .zlogout \
+        .inputrc .vimrc .tmux.conf .gitconfig \
+        .Xresources .Xdefaults .XCompose .xcompose)
+  for f in "${dots[@]}"; do
+    [[ -e "$TARGET_HOME/$f" ]] || continue
+    if [[ -d "$TARGET_HOME/$f" ]]; then
+      mv_to_backup "$TARGET_HOME/$f" "user dotfile dir"
+    else
+      mv_to_backup "$TARGET_HOME/$f" "user dotfile"
+    fi
   done
   wilds=(dwm i3 sway openbox awesome bspwm fluxbox icewm xmonad herbstluftwm qtile labwc wayfire river spectrwm wmii startx xfce4-session gnome-session plasma cinnamon-session mate-session lxsession lxqt)
   if [[ -d "$TARGET_HOME/.config/autostart" ]]; then
@@ -275,15 +334,17 @@ handle_file_conflicts() {
 }
 
 handle_user_account() {
-  local groups
+  local groups orig_groups
   (( DRY_RUN )) && return 0
   [[ -z "$TARGET_USER" ]] && {
     note "no user account found; add one later with: useradd -mG wheel -s /bin/bash <name>"
     return 0
   }
+  orig_groups="$(id -nG "$TARGET_USER" 2>/dev/null | tr ' ' ',' || true)"
   groups="wheel,video,audio,input"
   if usermod -aG "$groups" "$TARGET_USER" >>"$REPORT_FILE" 2>&1; then
     log "added $TARGET_USER to groups: $groups"
+    record_groups "$TARGET_USER" "$orig_groups"
   else
     err "could not add $TARGET_USER to groups $groups"
   fi
@@ -312,6 +373,8 @@ run_setup() {
 if [[ -d /run/systemd/system ]]; then
   die "systemd detected; Hexarchy requires Artix/runit (systemd-free)"
 fi
+
+record_header "$TARGET_USER" "$TARGET_HOME"
 
 CONFLICT_PKGS="lightdm gdm lxdm slim ly greetd gnome-shell plasma-desktop plasma-workspace plasmashell xfce4-session cinnamon mate-session lxsession lxqt-session lxqt-panel budgie-desktop deepin-session dwm i3 i3-wm i3-gaps sway openbox awesome bspwm fluxbox icewm xmonad herbstluftwm qtile labwc wayfire river spectrwm wmii windowmaker wmaker"
 

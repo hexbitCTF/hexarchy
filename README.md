@@ -43,9 +43,19 @@ touching your files — conflicting packages and services are stopped, your old
 configs are backed up, and everything is logged.
 
 ```sh
-bash install/to-hexarchy.sh --dry-run   # preview conflicts, change nothing
-bash install/to-hexarchy.sh             # migrate (keeps your configs, stops conflicts)
-bash install/to-hexarchy.sh --remove-conflicts   # also uninstall the old WM/DE/DM
+bash install/to-hexarchy.sh --dry-run          # preview conflicts, change nothing
+bash install/to-hexarchy.sh                    # migrate (keeps your configs, stops conflicts)
+bash install/to-hexarchy.sh --remove-conflicts # also uninstall the old WM/DE/DM
+```
+
+Your shell dotfiles (.bashrc/.zshrc/.profile/…), X resources, editor/tmux/git
+config, WM/DE configs and session scripts are moved into a timestamped backup
+and fully logged. Don't like it? Roll the whole thing back:
+
+```sh
+bash install/rollback-hexarchy.sh                     # restore from the latest backup
+bash install/rollback-hexarchy.sh --remove-hexarchy   # also uninstall the Hyprland/sddm stack
+bash install/rollback-hexarchy.sh --dry-run           # preview without touching anything
 ```
 
 Stop by `install/setup.sh` alone to skip the old-desktop cleanup.
