@@ -1,0 +1,87 @@
+#!/bin/bash
+# timedatectl shim for systemd-free Artix/runit.
+# Maps the verbs Hexarchy uses to the tzdata tree and /etc/timezone:
+#   list-timezones | set-timezone X | show [-p Timezone] [--value] | set-ntp
+
+ZONEINFO=/usr/share/zoneinfo
+TZFILE=/etc/timezone
+
+current_tz() {
+  local tz
+  if [[ -r "$TZFILE" ]]; then
+    tz="$(<"$TZFILE")"
+  else
+    tz="$(readlink -f /etc/localtime 2>/dev/null)"
+    tz="${tz#"$ZONEINFO"/}"
+  fi
+  echo "${tz:-UTC}"
+}
+
+list_timezones() {
+  [[ -d "$ZONEINFO" ]] || exit 1
+  find "$ZONEINFO" \( -type f -o -type l \) -printf '%P\n' |
+    grep -vE '^(posix/|right/|.*\.tab$|leapseconds|tzdata\.zi|Factory$|iso3166\.tab|zone\.tab$|zone1970\.tab$)' |
+    sort
+}
+
+set_timezone() {
+  local tz="$1"
+  [[ -n "$tz" ]] || { echo "timedatectl: missing timezone" >&2; exit 1; }
+  [[ -e "$ZONEINFO/$tz" ]] || { echo "timedatectl: unknown timezone $tz" >&2; exit 1; }
+  if [[ $EUID != 0 ]]; then
+    echo "timedatectl: set-timezone requires root (use sudo)" >&2
+    exit 1
+  fi
+  ln -sfn "$ZONEINFO/$tz" /etc/localtime
+  printf '%s\n' "$tz" > "$TZFILE"
+}
+
+show_status() {
+  local tz
+  tz="$(current_tz)"
+  printf '               Local time: %s\n' "$(date '+%a %Y-%m-%d %H:%M:%S %Z')"
+  printf '         Universal time: %s\n' "$(date -u '+%a %Y-%m-%d %H:%M:%S UTC')"
+  printf '                 Time zone: %s\n' "$tz"
+  printf '     timezone-data file: /usr/share/zoneinfo/%s\n' "$tz"
+}
+
+args=()
+want_timezone=0
+has_value=0
+
+for a in "$@"; do
+  case "$a" in
+    --no-pager) : ;;
+    --value) has_value=1 ;;&
+    -p) continue ;;&
+    *) args+=("$a") ;;
+  esac
+done
+
+verb="${args[0]:-}"
+case "$verb" in
+  list-timezones)
+    list_timezones
+    ;;
+  set-timezone)
+    set_timezone "${args[1]:-}"
+    ;;
+  show)
+    if (( has_value )); then
+      current_tz
+    else
+      show_status
+    fi
+    ;;
+  set-ntp)
+    # chrony/ntpd owns NTP on runit; nothing to configure here.
+    exit 0
+    ;;
+  -h|--help)
+    echo "usage: timedatectl [list-timezones|set-timezone <tz>|show [-p Field] [--value]|set-ntp [bool]]"
+    ;;
+  *)
+    show_status
+    ;;
+esac
+exit 0

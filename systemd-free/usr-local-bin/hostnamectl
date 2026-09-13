@@ -1,0 +1,52 @@
+#!/bin/bash
+# hostnamectl shim for systemd-free Artix/runit.
+# Maps the verbs Hexarchy uses to /etc/hostname + kernel.hostname:
+#   set-hostname NAME | show | set-{chassis,deployment,icon-name,location} (no-op)
+
+HOSTFILE=/etc/hostname
+
+current_hostname() {
+  cat "$HOSTFILE" 2>/dev/null | head -n1 || hostname 2>/dev/null || echo unknown
+}
+
+set_hostname() {
+  local name="$1"
+  [[ -n "$name" ]] || { echo "hostnamectl: missing hostname" >&2; exit 1; }
+  if [[ $EUID != 0 ]]; then
+    echo "hostnamectl: set-hostname requires root (use sudo)" >&2
+    exit 1
+  fi
+  printf '%s\n' "$name" > "$HOSTFILE"
+  sysctl -w "kernel.hostname=$name" >/dev/null 2>&1 || hostname -F "$HOSTFILE" 2>/dev/null || true
+}
+
+show_status() {
+  local hn
+  hn="$(current_hostname)"
+  printf '   Static hostname: %s\n' "$hn"
+  printf '      Kernel name: %s\n' "$(uname -s)"
+  printf '    Machine ID: %s\n' "$(cat /etc/machine-id 2>/dev/null || echo unset)"
+  printf '       Chassis: unsupported on runit (no systemd)\n'
+}
+
+args=()
+for a in "$@"; do
+  [[ "$a" == "--no-pager" || "$a" == "--json"* || "$a" == "-p" || "$a" == "--value" ]] || args+=("$a")
+done
+
+verb="${args[0]:-}"
+case "$verb" in
+  set-hostname)
+    set_hostname "${args[1]:-}"
+    ;;
+  set-chassis|set-deployment|set-icon-name|set-location)
+    exit 0
+    ;;
+  show|-h|--help|"")
+    show_status
+    ;;
+  *)
+    show_status
+    ;;
+esac
+exit 0

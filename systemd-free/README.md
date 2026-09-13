@@ -31,7 +31,10 @@ Hexarchy-specific service definitions live in [`sv/`](../sv).
 
 | File | Purpose | Install to |
 |---|---|---|
-| `usr-local-bin/systemctl` | Shim that maps the handful of `systemctl` verbs (from the Arch/systemd lineage) to `sv`, so `hexarchy-migrate` and installed tools run cleanly. Units translate by name (`NetworkManager.service` → `NetworkManager`, `systemd-logind` → `logind`, …). Everything else is a no-op. | `/usr/local/bin/systemctl` |
+| `usr-local-bin/systemctl` | Shim that maps the handful of `systemctl` verbs (from the Arch/systemd lineage) to `sv`, so `hexarchy-migrate` and installed tools run cleanly. Units translate by name (`NetworkManager.service` → `NetworkManager`, `systemd-logind` → `logind`, …). The power verbs `suspend` / `hibernate` / `poweroff` / `reboot` exec `loginctl` instead of no-op'ing. Everything else is a no-op. | `/usr/local/bin/systemctl` |
+| `usr-local-bin/timedatectl` | Shim for `timedatectl` (no systemd-timesyncd is present). `list-timezones` (reads the tzdata tree), `set-timezone <tz>` (localetime symlink + `/etc/timezone`), `show -p Timezone --value`, `set-ntp` (no-op; chrony owns NTP). Backs the timezone menu item and the installer's `hexarchy-provision-owner`. | `/usr/local/bin/timedatectl` |
+| `usr-local-bin/hostnamectl` | Shim for `hostnamectl`. `set-hostname <name>` writes `/etc/hostname` and updates `kernel.hostname`; `show` prints a minimal status; `set-*` other verbs no-op. Used by the installer's provisioner. | `/usr/local/bin/hostnamectl` |
+| `usr-local-bin/localectl` | Shim for `localectl`. `list-keymaps` (from `/usr/share/kbd/keymaps`) and `set-keymap <km>` (persists `KEYMAP=` in `/etc/vconsole.conf` and reloads it). `--no-pager` is accepted. Used by the installer's provisioner. | `/usr/local/bin/localectl` |
 | `usr-local-bin/uwsm-app` | `uwsm-app` wraps apps in a cgroup on systemd; on runit we just exec the command. | `/usr/local/bin/uwsm-app` |
 | `usr-local-bin/xdg-terminal-exec` | Terminal selection for systems without `xdg-utils` ≥ 1.2.2. Prefers kitty, falls back to foot. | `/usr/local/bin/xdg-terminal-exec` |
 | `usr-local-bin/hexarchy-terminal` | The terminal shortcut (`kitty`). | `/usr/local/bin/hexarchy-terminal` |

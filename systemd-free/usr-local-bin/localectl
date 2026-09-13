@@ -1,0 +1,73 @@
+#!/bin/bash
+# localectl shim for systemd-free Artix/runit.
+# Maps the verbs Hexarchy uses to /usr/share/kbd/keymaps and /etc/vconsole.conf:
+#   [--no-pager] list-keymaps | set-keymap X | set-x11-keymap ... (no-op)
+
+KBDIR=/usr/share/kbd/keymaps
+VCONF=/etc/vconsole.conf
+
+current_keymap() {
+  sed -n 's/^KEYMAP=//p' "$VCONF" 2>/dev/null | tail -n1
+}
+
+list_keymaps() {
+  [[ -d "$KBDIR" ]] || exit 1
+  find "$KBDIR" \( -name '*.map.gz' -o -name '*.map' \) -printf '%P\n' |
+    sed -e 's/\.map\(\\.gz\)\?$//' |
+    sort
+}
+
+keymap_file() {
+  local km="$1"
+  [[ -e "$KBDIR/$km.map.gz" ]] && echo "$KBDIR/$km.map.gz" && return 0
+  [[ -e "$KBDIR/$km.map" ]] && echo "$KBDIR/$km.map" && return 0
+  return 1
+}
+
+set_keymap() {
+  local km="$1"
+  [[ -n "$km" ]] || { echo "localectl: missing keymap" >&2; exit 1; }
+  if [[ $EUID != 0 ]]; then
+    echo "localectl: set-keymap requires root (use sudo)" >&2
+    exit 1
+  fi
+  local rule
+  rule="$(keymap_file "$km")" || { echo "localectl: unknown keymap $km" >&2; exit 1; }
+  if [[ -f "$VCONF" ]]; then
+    sed -i "s/^KEYMAP=.*/KEYMAP=$km/" "$VCONF"
+  else
+    printf 'KEYMAP=%s\n' "$km" > "$VCONF"
+  fi
+  [[ $(tty 2>/dev/null) == /dev/tty* ]] && loadkeys "$rule" >/dev/null 2>&1 || true
+}
+
+show_status() {
+  local km
+  km="$(current_keymap)"
+  printf '   Console Keymap: %s\n' "${km:-n/a}"
+}
+
+args=()
+for a in "$@"; do
+  [[ "$a" == "--no-pager" ]] || args+=("$a")
+done
+
+verb="${args[0]:-}"
+case "$verb" in
+  list-keymaps)
+    list_keymaps
+    ;;
+  set-keymap)
+    set_keymap "${args[1]:-}"
+    ;;
+  set-x11-keymap|set-x11-layout)
+    exit 0
+    ;;
+  status|-h|--help|"")
+    show_status
+    ;;
+  *)
+    show_status
+    ;;
+esac
+exit 0

@@ -88,6 +88,11 @@ fi
 # System-level calls.
 case "$verb" in
   daemon-reload|reset-failed|mask|unmask) exit 0 ;;
+  suspend|hibernate|poweroff|reboot)
+    # systemd-free power verbs -> elogind (runit). Any stray caller of
+    # `systemctl suspend` etc. must do a real thing, not silently no-op.
+    exec loginctl "$verb"
+    ;;
   is-enabled|is-active)
     unit=$(unit_from_args "$@") || exit 1
     svc=$(unit_to_svc "$unit")
