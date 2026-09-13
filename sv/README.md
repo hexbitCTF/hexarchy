@@ -22,6 +22,7 @@ They live at `$HEXARCHY_PATH/sv/` and are symlinked into `/etc/runit/sv/` during
 | `systemctl enable rsyslog` | `sv/rsyslog/run`           | `rsyslog`                   |
 | `systemctl enable polkitd` | `sv/polkitd/run`           | `polkit`                    |
 | `systemctl enable dnscrypt-proxy` | `sv/dnscrypt-proxy/run` | `dnscrypt-proxy`          |
+| `systemctl enable power-profiles-daemon` | `sv/power-profiles-daemon/run` | `power-profiles-daemon` |
 
 ## User Services
 
@@ -52,6 +53,7 @@ sudo ln -s /etc/runit/sv/ufw /run/runit/service/
 sudo ln -s /etc/runit/sv/cronie /run/runit/service/
 sudo ln -s /etc/runit/sv/rsyslog /run/runit/service/
 sudo ln -s /etc/runit/sv/polkitd /run/runit/service/
+sudo ln -s /etc/runit/sv/power-profiles-daemon /run/runit/service/
 
 # Or use hexarchy's installer:
 hexarchy config services

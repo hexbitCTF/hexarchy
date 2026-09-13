@@ -167,6 +167,7 @@ if (( DO_SERVICES )); then
   enable_service cronie
   enable_service earlyoom
   enable_service rsyslog
+  enable_service power-profiles-daemon
   echo "  note: agetty/user services come from the Artix runit base packages"
 fi
 
