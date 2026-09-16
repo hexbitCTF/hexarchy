@@ -14,4 +14,14 @@ if [[ -f "$HEXARCHY_PATH/install/user/mise.sh" ]]; then
   bash "$HEXARCHY_PATH/install/user/mise.sh"
 fi
 
+# Hexcalc, Hexwrite, and Hexcut ship their icon next to their script rather
+# than through the package-owned hicolor tree the rest of Hexarchy's icons
+# live in, so this is the one place that installs them.
+icon_dir="$HOME/.local/share/icons/hicolor/256x256/apps"
+mkdir -p "$icon_dir"
+for app in hexcalc hexwrite hexcut; do
+  cp "$HEXARCHY_PATH/apps/$app/$app.png" "$icon_dir/"
+done
+gtk-update-icon-cache "$HOME/.local/share/icons/hicolor" &>/dev/null || true
+
 update-desktop-database ~/.local/share/applications
