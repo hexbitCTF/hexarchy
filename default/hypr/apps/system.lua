@@ -29,7 +29,7 @@ o.window("org.hexarchy.about", { size = { 920, 480 } })
 
 o.window("dev.tensaku.Tensaku", { float = true })
 o.window("dev.tensaku.Tensaku", { center = true })
-o.window("omacalc", { float = true })
+o.window("org.hexarchy.hexcalc", { float = true })
 
 -- Fullscreen screensaver.
 o.window("org.hexarchy.screensaver", { fullscreen = true })

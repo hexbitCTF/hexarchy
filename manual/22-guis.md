@@ -18,11 +18,11 @@ Obsidian also offers a [commercial add-on for syncing](https://obsidian.md/sync)
 
 You start Obsidian with `Super + Shift + O`. To use theme syncing, you must select the `Hexarchy` theme under settings.
 
-## Omawrite
+## Hexwrite
 
-[Omawrite](https://github.com/omacom-io/omawrite) is Hexarchy's own dead-simple Markdown writing app. No vaults, no plugins, just you and the words.
+Hexwrite is Hexarchy's own dead-simple Markdown writing app. No vaults, no plugins, just you and the words.
 
-You start Omawrite with `Super + Shift + W`.
+You start Hexwrite with `Super + Shift + W`.
 
 ## Pinta
 
@@ -59,11 +59,11 @@ Hexarchy's firewall is closed by default except for LocalSend's port, so this wo
 
 You start LibreOffice via the application launcher (`Super + Space`).
 
-## Omacalc
+## Hexcalc
 
-[Omacalc](https://github.com/omacom-io/omacalc) is Hexarchy's own dead-simple calculator, which opens in a floating window.
+Hexcalc is Hexarchy's own dead-simple calculator, which opens in a floating window.
 
-You start Omacalc with `Super + Ctrl + Q` (or the calculator key, if your keyboard has one).
+You start Hexcalc with `Super + Ctrl + Q` (or the calculator key, if your keyboard has one).
 
 ## Signal
 
@@ -89,8 +89,8 @@ You start OBS Studio via the application launcher (`Super + Space`).
 
 You start Kdenlive via the application launcher (`Super + Space`).
 
-## Omacut
+## Hexcut
 
-[Omacut](https://github.com/omacom-io/omacut) is Hexarchy's own dead-simple video trimmer. When all you need is to cut the start and end off a clip, it beats firing up a full video editor.
+Hexcut is Hexarchy's own dead-simple video trimmer. When all you need is to cut the start and end off a clip, it beats firing up a full video editor.
 
-You start Omacut via the application launcher (`Super + Space`).
+You start Hexcut via the application launcher (`Super + Space`).

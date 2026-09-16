@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Hexwrite
+GenericName=Markdown Writer
+Comment=Hexarchy's own dead-simple Markdown writing app
+Exec=hexwrite %f
+Icon=text-editor
+Terminal=false
+Categories=Utility;TextEditor;
+MimeType=text/markdown;
+StartupNotify=true
+StartupWMClass=org.hexarchy.hexwrite

@@ -1,0 +1,210 @@
+#!/usr/bin/python3
+
+# Hexwrite: Hexarchy's own dead-simple Markdown writing app. The Hexarchy
+# counterpart to Omawrite (github.com/omacom-io/omawrite) -- no vaults, no
+# plugins, just you and the words.
+
+import sys
+
+import gi
+
+gi.require_version("Gtk", "4.0")
+gi.require_version("Adw", "1")
+from gi.repository import Adw, Gdk, Gio, GLib, Gtk
+
+APP_ID = "org.hexarchy.hexwrite"
+
+
+class HexwriteWindow(Adw.ApplicationWindow):
+    def __init__(self, app, open_path=None):
+        super().__init__(application=app, title="Hexwrite")
+        self.set_default_size(760, 900)
+
+        self.file = None
+        self.dirty = False
+
+        self.buffer = Gtk.TextBuffer()
+        self.buffer.connect("changed", self.on_changed)
+
+        self.view = Gtk.TextView(buffer=self.buffer)
+        self.view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        self.view.set_monospace(True)
+        self.view.set_top_margin(24)
+        self.view.set_bottom_margin(24)
+        self.view.set_left_margin(48)
+        self.view.set_right_margin(48)
+        self.view.add_css_class("hexwrite-view")
+
+        scroller = Gtk.ScrolledWindow()
+        scroller.set_child(self.view)
+        scroller.set_vexpand(True)
+
+        toolbar = Adw.ToolbarView()
+        header = Adw.HeaderBar()
+        self.title_widget = Adw.WindowTitle(title="Untitled", subtitle="")
+        header.set_title_widget(self.title_widget)
+
+        new_btn = Gtk.Button(icon_name="document-new-symbolic", tooltip_text="New (Ctrl+N)")
+        new_btn.connect("clicked", lambda _b: self.new_file())
+        open_btn = Gtk.Button(icon_name="document-open-symbolic", tooltip_text="Open (Ctrl+O)")
+        open_btn.connect("clicked", lambda _b: self.open_file())
+        save_btn = Gtk.Button(icon_name="document-save-symbolic", tooltip_text="Save (Ctrl+S)")
+        save_btn.connect("clicked", lambda _b: self.save_file())
+
+        header.pack_start(new_btn)
+        header.pack_start(open_btn)
+        header.pack_end(save_btn)
+        toolbar.add_top_bar(header)
+        toolbar.set_content(scroller)
+        self.set_content(toolbar)
+
+        self.setup_actions(app)
+
+        if open_path:
+            self.load_path(open_path)
+
+        self.connect("close-request", self.on_close_request)
+
+    def setup_actions(self, app):
+        for name, keys, cb in [
+            ("new", ["<Control>n"], lambda *_a: self.new_file()),
+            ("open", ["<Control>o"], lambda *_a: self.open_file()),
+            ("save", ["<Control>s"], lambda *_a: self.save_file()),
+            ("save-as", ["<Control><Shift>s"], lambda *_a: self.save_file(force_dialog=True)),
+        ]:
+            action = Gio.SimpleAction.new(name, None)
+            action.connect("activate", cb)
+            self.add_action(action)
+            app.set_accels_for_action("win." + name, keys)
+
+    def on_changed(self, _buf):
+        if not self.dirty:
+            self.dirty = True
+            self.update_title()
+
+    def update_title(self):
+        name = self.file.get_basename() if self.file else "Untitled"
+        self.title_widget.set_title(("*" if self.dirty else "") + name)
+        self.title_widget.set_subtitle(self.file.get_path() if self.file else "")
+
+    def text(self):
+        start, end = self.buffer.get_bounds()
+        return self.buffer.get_text(start, end, True)
+
+    def load_path(self, path):
+        gfile = Gio.File.new_for_path(path)
+        try:
+            ok, contents, _etag = gfile.load_contents(None)
+        except GLib.Error:
+            return
+        self.buffer.set_text(contents.decode("utf-8", errors="replace"))
+        self.file = gfile
+        self.dirty = False
+        self.update_title()
+
+    def new_file(self):
+        self.buffer.set_text("")
+        self.file = None
+        self.dirty = False
+        self.update_title()
+
+    def open_file(self):
+        dialog = Gtk.FileDialog(title="Open")
+        md_filter = Gtk.FileFilter(name="Markdown")
+        md_filter.add_pattern("*.md")
+        md_filter.add_pattern("*.markdown")
+        filters = Gio.ListStore.new(Gtk.FileFilter)
+        filters.append(md_filter)
+        dialog.set_filters(filters)
+
+        def done(_dlg, result):
+            try:
+                gfile = dialog.open_finish(result)
+            except GLib.Error:
+                return
+            if gfile:
+                self.load_path(gfile.get_path())
+
+        dialog.open(self, None, done)
+
+    def save_file(self, force_dialog=False):
+        if self.file is None or force_dialog:
+            dialog = Gtk.FileDialog(title="Save As", initial_name="Untitled.md")
+
+            def done(_dlg, result):
+                try:
+                    gfile = dialog.save_finish(result)
+                except GLib.Error:
+                    return
+                if gfile:
+                    self.write_to(gfile)
+
+            dialog.save(self, None, done)
+        else:
+            self.write_to(self.file)
+
+    def write_to(self, gfile):
+        data = self.text().encode("utf-8")
+        gfile.replace_contents(data, None, False, Gio.FileCreateFlags.NONE, None)
+        self.file = gfile
+        self.dirty = False
+        self.update_title()
+
+    def on_close_request(self, _win):
+        if not self.dirty:
+            return False
+        dialog = Adw.AlertDialog(
+            heading="Save changes?",
+            body="Your changes will be lost if you close without saving.",
+        )
+        dialog.add_response("discard", "Discard")
+        dialog.add_response("cancel", "Cancel")
+        dialog.add_response("save", "Save")
+        dialog.set_response_appearance("discard", Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.set_response_appearance("save", Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_default_response("save")
+        dialog.set_close_response("cancel")
+
+        def on_response(_dlg, response):
+            if response == "discard":
+                self.destroy()
+            elif response == "save":
+                self.save_file()
+                if not self.dirty:
+                    self.destroy()
+
+        dialog.connect("response", on_response)
+        dialog.present(self)
+        return True
+
+
+CSS = b"""
+.hexwrite-view { font-size: 15px; line-height: 1.5; }
+"""
+
+
+class HexwriteApp(Adw.Application):
+    def __init__(self):
+        super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.HANDLES_OPEN)
+        self.connect("open", self.on_open)
+
+    def do_activate(self):
+        provider = Gtk.CssProvider()
+        provider.load_from_data(CSS)
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+        win = self.props.active_window
+        if not win:
+            win = HexwriteWindow(self)
+        win.present()
+
+    def on_open(self, _app, files, _hint, _data=None):
+        self.do_activate()
+        win = self.props.active_window
+        if files:
+            win.load_path(files[0].get_path())
+
+
+if __name__ == "__main__":
+    sys.exit(HexwriteApp().run(sys.argv))

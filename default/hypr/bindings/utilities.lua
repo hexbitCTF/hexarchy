@@ -10,8 +10,8 @@ o.bind("XF86PowerOff", "Power menu", "hexarchy-menu toggle system", { locked = t
 o.bind("SUPER + K", "Keybindings", "hexarchy-menu-keybindings")
 o.bind("SUPER + ALT + K", "Tmux keybindings", "hexarchy-menu-tmux-keybindings")
 o.bind("SUPER + CTRL + K", "Herdr keybindings", "hexarchy-menu-herdr-keybindings")
-o.bind("SUPER + CTRL + Q", "Calculator", "omacalc")
-o.bind("XF86Calculator", "Calculator", "omacalc")
+o.bind("SUPER + CTRL + Q", "Calculator", "hexcalc")
+o.bind("XF86Calculator", "Calculator", "hexcalc")
 
 o.bind_toggle("SUPER + SHIFT + SPACE", "Toggle top bar", "bar")
 o.bind("SUPER + CTRL + SPACE", "Background switcher", "hexarchy-menu toggle background")

@@ -63,12 +63,6 @@ for package in "${restored[@]}"; do
 done
 pass "every preinstall is shipped in hexarchy-base.packages"
 
-for package in omacut omacalc omawrite; do
-  printf '%s\n' "${restored[@]}" | grep -qxF "$package" ||
-    fail "preinstalls cover the Omacom apps" "$package is missing"
-done
-pass "preinstalls cover the Omacom apps"
-
 # The bindings key off the marker, so clearing it before the packages land would
 # point them at apps that never came back.
 touch "$marker"

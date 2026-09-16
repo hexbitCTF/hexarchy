@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Hexcut
+GenericName=Video Trimmer
+Comment=Hexarchy's own dead-simple video trimmer
+Exec=hexcut
+Icon=video-x-generic
+Terminal=false
+Categories=AudioVideo;Video;
+StartupNotify=true
+StartupWMClass=org.hexarchy.hexcut
