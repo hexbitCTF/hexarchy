@@ -43,6 +43,7 @@
 
   // Learn
   "learn.keybindings": {"icon":"","label":"Keybindings","action":"hexarchy-menu-keybindings"},
+  "learn.nvim-keybindings": {"icon":"","label":"Neovim keybindings","action":"hexarchy-menu-nvim-keybindings"},
   "learn.hexarchy": {"icon":"","label":"Hexarchy","action":"hexarchy-launch-webapp 'https://hexarchy.org/manual/'"},
   "learn.hyprland": {"icon":"","label":"Hyprland","action":"hexarchy-launch-webapp 'https://wiki.hypr.land/'"},
   "learn.arch": {"icon":"󰣇","label":"Arch","action":"hexarchy-launch-webapp 'https://wiki.archlinux.org/title/Main_page'"},
@@ -214,7 +215,7 @@
   "install.browser.edge": {"icon":"󰇩","label":"Edge","disabled":"hexarchy-pkg-present microsoft-edge-stable-bin","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-install-browser edge'"},
   "install.browser.brave": {"icon":"","label":"Brave","disabled":"hexarchy-pkg-present brave-bin","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-install-browser brave'"},
   "install.browser.brave-origin": {"icon":"","label":"Brave Origin","disabled":"hexarchy-pkg-present brave-origin-bin","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-install-browser brave-origin'"},
-  "install.browser.firefox": {"icon":"","label":"Firefox","disabled":"hexarchy-pkg-present firefox","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-install-browser firefox'"},
+  "install.browser.chromium": {"icon":"","label":"Chromium","disabled":"hexarchy-pkg-present chromium","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-install-browser chromium'"},
   "install.browser.zen": {"icon":"󰖟","label":"Zen","disabled":"hexarchy-pkg-present zen-browser-bin","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-install-browser zen'"},
   "install.service.1password": {"icon":"󰢁","label":"1Password","disabled":"hexarchy-pkg-present 1password","action":"hexarchy-launch-floating-terminal-with-presentation hexarchy-install-service-1password"},
   "install.service.dropbox": {"icon":"","label":"Dropbox","disabled":"hexarchy-pkg-present dropbox","action":"hexarchy-launch-floating-terminal-with-presentation hexarchy-install-service-dropbox"},
@@ -296,7 +297,7 @@
   "remove.browser.edge": {"icon":"󰇩","label":"Edge","when":"hexarchy-pkg-present microsoft-edge-stable-bin","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-remove-browser edge'"},
   "remove.browser.brave": {"icon":"","label":"Brave","when":"hexarchy-pkg-present brave-bin","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-remove-browser brave'"},
   "remove.browser.brave-origin": {"icon":"","label":"Brave Origin","when":"hexarchy-pkg-present brave-origin-bin","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-remove-browser brave-origin'"},
-  "remove.browser.firefox": {"icon":"","label":"Firefox","when":"hexarchy-pkg-present firefox","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-remove-browser firefox'"},
+  "remove.browser.chromium": {"icon":"","label":"Chromium","when":"hexarchy-pkg-present chromium","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-remove-browser chromium'"},
   "remove.browser.zen": {"icon":"","label":"Zen","when":"hexarchy-pkg-present zen-browser-bin","action":"hexarchy-launch-floating-terminal-with-presentation 'hexarchy-remove-browser zen'"},
   "remove.service.dropbox": {"icon":"","label":"Dropbox","when":"hexarchy-pkg-present dropbox","action":"hexarchy-launch-floating-terminal-with-presentation hexarchy-remove-service-dropbox"},
   "remove.service.tailscale": {"icon":"","label":"Tailscale","when":"hexarchy-pkg-present tailscale","action":"hexarchy-launch-floating-terminal-with-presentation hexarchy-remove-service-tailscale"},

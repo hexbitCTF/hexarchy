@@ -1,0 +1,216 @@
+#!/bin/bash
+
+# hexarchy:summary=Display annotated Neovim keybindings using an interactive search menu.
+# hexarchy:args=[--print|-p]
+
+print_only=false
+
+while (($#)); do
+  case "$1" in
+    --print|-p)
+      print_only=true
+      ;;
+    *)
+      ;;
+  esac
+
+  shift
+done
+
+output_keybindings() {
+  cat <<'KEYS'
+SPACE           → Leader key
+────────── Mode Switching ──────────
+i               → Insert before cursor
+a               → Insert after cursor
+I               → Insert at start of line
+A               → Insert at end of line
+o               → New line below (insert)
+O               → New line above (insert)
+v               → Visual mode (character)
+V               → Visual mode (line)
+CTRL + v        → Visual mode (block)
+────────── Saving & Exiting ──────────
+:w              → Save file
+:w!             → Force save
+:q              → Quit
+:wq             → Save and quit
+:q!             → Quit without saving
+ZZ              → Save and quit current file
+ZQ              → Quit without saving
+────────── Navigation (Within Line) ──────────
+h / ←           → Move left
+l / →           → Move right
+0               → Start of line
+^               → First non-blank character
+$               → End of line
+w               → Next word start
+W               → Next WORD start
+b               → Previous word start
+B               → Previous WORD start
+e               → End of word
+E               → End of WORD
+────────── Navigation (Within Buffer) ──────────
+j / ↓           → Move down one line
+k / ↑           → Move up one line
+gg              → Go to first line
+G               → Go to last line
+:{number}       → Go to line number (e.g. :42)
+H               → Top of screen
+M               → Middle of screen
+L               → Bottom of screen
+CTRL + d        → Half page down
+CTRL + u        → Half page up
+CTRL + f        → Page down
+CTRL + b        → Page up
+CTRL + e        → Scroll line down (cursor follows)
+CTRL + y        → Scroll line up (cursor follows)
+────────── Search ──────────
+/               → Search forward
+?               → Search backward
+n               → Next search match
+N               → Previous search match
+*               → Search word under cursor (forward)
+#               → Search word under cursor (backward)
+:%s/old/new/g   → Replace all in file
+:s/old/new/g    → Replace all in current line
+:noh            → Clear search highlight
+f{char}         → Jump forward to char in line
+F{char}         → Jump backward to char in line
+t{char}         → Jump forward before char in line
+T{char}         → Jump backward after char in line
+;               → Repeat f/F/t/T forward
+,               → Repeat f/F/t/T backward
+────────── Editing ──────────
+x               → Delete character under cursor
+dd              → Delete entire line
+D               → Delete to end of line
+dw              → Delete to next word
+de              → Delete to end of word
+db              → Delete to previous word
+d$              → Delete to end of line
+d0              → Delete to start of line
+cc              → Change entire line
+C               → Change to end of line
+cw              → Change to next word
+ce              → Change to end of word
+cb              → Change to previous word
+s               → Substitute character
+S               → Substitute entire line
+r{char}         → Replace character under cursor
+~               → Toggle case
+J               → Join current line with next
+.               → Repeat last change
+────────── Yanking & Pasting ──────────
+yy              → Yank entire line
+Y               → Yank entire line
+yw              → Yank word
+ye              → Yank to end of word
+p               → Paste after cursor
+P               → Paste before cursor
+────────── Indenting ──────────
+>>              → Indent line
+<<              → Dedent line
+>ip             → Indent inner paragraph
+<ip             → Dedent inner paragraph
+────────── Text Objects (with d/c/y) ──────────
+diw             → Delete inner word
+daw             → Delete a word
+di"             → Delete inside quotes
+da"             → Delete including quotes
+di(             → Delete inside parens
+da(             → Delete including parens
+di{             → Delete inside braces
+di<             → Delete inside angle brackets
+di[             → Delete inside brackets
+dit             → Delete inside HTML tag
+ciw             → Change inner word
+caw             → Change a word
+ci"             → Change inside quotes
+ci(             → Change inside parens
+ci{             → Change inside braces
+yiw             → Yank inner word
+yaw             → Yank a word
+yi"             → Yank inside quotes
+yi(             → Yank inside parens
+yi{             → Yank inside braces
+────────── Undo & Redo ──────────
+u               → Undo
+CTRL + r        → Redo
+────────── Marks ──────────
+m{a-z}          → Set mark (lowercase = file-local)
+'{mark}         → Jump to mark line
+`{mark}         → Jump to mark exact position
+────────── Buffers ──────────
+:ls             → List open buffers
+:bn             → Next buffer
+:bp             → Previous buffer
+:bd             → Close buffer
+:b{number}      → Switch to buffer number
+CTRL + ^        → Switch to alternate file
+────────── Windows ──────────
+:sp             → Split horizontally
+:vsp            → Split vertically
+CTRL + w s      → Split horizontally
+CTRL + w v      → Split vertically
+CTRL + w w      → Switch between windows
+CTRL + w h      → Focus window left
+CTRL + w j      → Focus window down
+CTRL + w k      → Focus window up
+CTRL + w l      → Focus window right
+CTRL + w q      → Close current window
+CTRL + w =      → Equalize window sizes
+CTRL + w _      → Maximize window height
+CTRL + w |      → Maximize window width
+────────── Registers ──────────
+"{a-z}          → Use register (e.g. "ayy)
+"+y             → Yank to system clipboard
+"+p             → Paste from system clipboard
+────────── Macros ──────────
+q{a-z}          → Start recording macro
+q               → Stop recording
+@{a-z}          → Replay macro
+@@              → Repeat last macro
+────────── Plugins (Custom Config) ──────────
+SPACE + cd      → Open file explorer (:Ex)
+SPACE + e       → Toggle NvimTree file explorer
+SPACE + ls      → Start Live Server on port 5500
+SPACE + s       → Auto-correct spelling (line/selection)
+SPACE + ff      → Find files (Telescope)
+SPACE + fg      → Live grep (Telescope)
+SPACE + u       → Undo history (Telescope)
+SPACE + a       → Add file to Harpoon
+SPACE + h       → Toggle Harpoon menu
+SPACE + rn      → Rename symbol (LSP)
+SPACE + ca      → Code action (LSP)
+CTRL + h        → Harpoon file 1
+CTRL + j        → Harpoon file 2 / CMP next
+CTRL + k        → Harpoon file 3 / CMP prev
+K               → Hover docs (LSP)
+gd              → Go to definition (LSP)
+────────── Snacks Dashboard ──────────
+f               → Find file
+g               → Find text
+r               → Recent files
+n               → New file
+l               → Lazy plugin manager
+c               → Browse config files
+q               → Quit
+KEYS
+}
+
+if [[ $print_only == "true" ]]; then
+  output_keybindings
+  exit 0
+fi
+
+records=$(output_keybindings)
+
+monitor_height=$(hyprctl monitors -j 2>/dev/null | jq -r '.[] | select(.focused == true) | .height' 2>/dev/null)
+
+if [[ ! $monitor_height =~ ^[0-9]+$ ]] || ((monitor_height <= 0)); then
+  monitor_height=900
+fi
+
+menu_height=$((monitor_height * 70 / 100))
+printf '%s\n' "$records" | hexarchy-menu-select 'Neovim keybindings' -- --width 800 --height "$menu_height" >/dev/null || true
