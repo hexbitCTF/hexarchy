@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "Hexarchy Theme",
+  "version": "1.0.0",
+  "description": "Live-sync Firefox to the Hexarchy system theme.",
+  "permissions": ["nativeMessaging", "theme", "management"],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "applications": {
+    "gecko": {
+      "id": "hexarchy-theme@hexarchy.org",
+      "strict_min_version": "106.0"
+    }
+  }
+}

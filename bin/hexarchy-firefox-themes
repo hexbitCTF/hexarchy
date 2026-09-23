@@ -1,0 +1,142 @@
+#!/bin/bash
+
+# hexarchy:summary=Generate a Firefox static theme for every Hexarchy theme, in the style of the AMO "Osaka Jade" theme
+# hexarchy:args=
+
+set -euo pipefail
+
+OUT="$HOME/.local/share/hexarchy/firefox-themes"
+THEME_DIRS_OFFICIAL="$HEXARCHY_PATH/themes"
+THEME_DIRS_USER="$HOME/.config/hexarchy/themes"
+PROFILE_BASE="$HOME/.config/mozilla/firefox"
+
+SLOT_COLORS=(toolbar:lighter_background toolbar_text:light_foreground frame:background frame_inactive:dark_background tab_background_text:foreground toolbar_field:background toolbar_field_text:light_foreground toolbar_field_highlight:selection toolbar_field_highlight_text:foreground tab_line:accent tab_loading:accent popup:background popup_text:light_foreground popup_highlight:selection popup_highlight_text:foreground sidebar:background sidebar_border:lighter_background sidebar_text:light_foreground sidebar_highlight:selection sidebar_highlight_text:foreground ntp_background:background ntp_text:foreground)
+
+pretty_name() {
+  local slug="$1"
+  printf '%s' "$slug" | sed -E 's/-/ /g; s/\b(.)/\u\1/g'
+}
+
+hex_to_rgb() {
+  local hex="$1"
+  python3 -c "print('%d, %d, %d' % tuple(int('$hex'[i:i+2],16) for i in (1,3,5)))"
+}
+
+generate_one() {
+  local dir="$1"
+  local slug="$2"
+  local colors_file="$dir/colors.toml"
+  local id name slot key value rgb manifest tmp
+
+  [[ -f $colors_file ]] || return
+
+  id="hexarchy-${slug}@hexarchy.org"
+  name=$(pretty_name "$slug")
+
+  tmp=$(mktemp -d)
+  trap 'rm -rf "${tmp:-}"' EXIT
+
+  {
+    printf '{\n'
+    printf '  "manifest_version": 2,\n'
+    printf '  "version": "1.0",\n'
+    printf '  "name": "%s",\n' "$name"
+    printf '  "theme": {\n'
+    printf '    "images": {},\n'
+    printf '    "properties": {},\n'
+    printf '    "colors": {\n'
+
+    local i=0
+    for slot in "${SLOT_COLORS[@]}"; do
+      key="${slot%%:*}"
+      value="${slot#*:}"
+      hex=$(hexarchy-theme-color --file "$colors_file" "$value" 2>/dev/null || true)
+      [[ $hex =~ ^#[0-9A-Fa-f]{6}$ ]] || hex=$(hexarchy-theme-color --file "$colors_file" background)
+      rgb=$(hex_to_rgb "$hex")
+
+      (( i > 0 )) && printf ',\n'
+      printf '      "%s": "rgb(%s)"' "$key" "$rgb"
+      i=1
+    done
+
+    printf '\n'
+    printf '    }\n'
+    printf '  },\n'
+    printf '  "browser_specific_settings": {\n'
+    printf '    "gecko": {\n'
+    printf '      "id": "%s"\n' "$id"
+    printf '    }\n'
+    printf '  }\n'
+    printf '}\n'
+  } >"$tmp/manifest.json"
+
+  mkdir -p "$OUT"
+  ALPHA="${ALPHA:-1.0}" ALPHA_KEYS="${ALPHA_KEYS:-frame frame_inactive toolbar toolbar_field popup sidebar ntp_background}" python3 - "$tmp/manifest.json" "$OUT/$id.xpi" <<'PY'
+import json, os, re, sys, zipfile
+src, dst = sys.argv[1:3]
+alpha = float(os.environ["ALPHA"])
+keys = frozenset(os.environ["ALPHA_KEYS"].split())
+m = json.load(open(src))
+colors = m["theme"]["colors"]
+for k, v in list(colors.items()):
+    if k in keys and isinstance(v, str):
+        m2 = re.fullmatch(r"rgb\((\d+),\s*(\d+),\s*(\d+)\)", v)
+        if m2:
+            r, g, b = (int(x) for x in m2.groups())
+            colors[k] = "rgba(%d, %d, %d, %g)" % (r, g, b, alpha)
+with open(src, "w") as fh:
+    json.dump(m, fh, indent=2)
+with zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED) as z:
+    z.write(src, "manifest.json")
+PY
+}
+
+install_to_profiles() {
+  local path
+
+  while IFS= read -r path; do
+    [[ -n $path ]] || continue
+    local dir="$PROFILE_BASE/$path"
+    [[ -d $dir ]] || dir="$HOME/$path"
+    [[ -d $dir ]] || continue
+
+    mkdir -p "$dir/extensions"
+    for f in "$dir"/extensions/hexarchy-*@hexarchy.org.xpi; do
+      [[ -e $f ]] || continue
+      [[ ${f##*/} == "hexarchy-theme@hexarchy.org.xpi" ]] && continue
+      rm -f "$f"
+    done
+    cp "$OUT"/*.xpi "$dir/extensions/"
+    echo "  themes installed: $dir/extensions"
+  done < <(awk -F= '/^Path=/{print $2}' "$PROFILE_BASE/profiles.ini" 2>/dev/null || true)
+}
+
+mkdir -p "$OUT"
+rm -f "$OUT"/hexarchy-*@hexarchy.org.xpi
+
+for dir in "$THEME_DIRS_USER"/* "$THEME_DIRS_OFFICIAL"/*; do
+  [[ -d $dir ]] || continue
+  generate_one "$dir" "$(basename "$dir")"
+done
+
+cat >"$OUT/themes.json" <<EOF
+{}
+EOF
+
+python3 - "$OUT" <<'PY'
+import json, os, sys
+out = sys.argv[1]
+mapping = {}
+for f in os.listdir(out):
+    if f.endswith(".xpi"):
+        slug = f[len("hexarchy-"):]
+        slug = slug[: -len("@hexarchy.org.xpi")]
+        mapping[slug] = f[: -len(".xpi")]
+with open(os.path.join(out, "themes.json"), "w") as fh:
+    json.dump(mapping, fh, indent=2)
+PY
+
+install_to_profiles
+
+echo "Generated $(ls "$OUT"/*.xpi | wc -l) Firefox themes in $OUT"
+echo "Mapping: $OUT/themes.json"

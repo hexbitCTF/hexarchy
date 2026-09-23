@@ -328,6 +328,7 @@ post_theme_commands=(
   hexarchy-theme-set-pi
   hexarchy-theme-set-claude
   hexarchy-theme-set-browser
+  hexarchy-theme-set-firefox
   hexarchy-theme-set-vscode
   hexarchy-theme-set-obsidian
   hexarchy-theme-set-keyboard

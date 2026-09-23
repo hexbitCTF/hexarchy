@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# hexarchy:summary=Native messaging host: serve the current Hexarchy theme to Firefox
+# hexarchy:hidden=true
+
+# Speaks Firefox's native messaging protocol (length-prefixed JSON) on
+# stdin/stdout. For every message the extension sends, reply with the
+# firefox.json that hexarchy generated for the current theme, so the extension
+# can live-apply it with browser.theme.update() with no keypresses.
+
+set -euo pipefail
+
+THEME_JSON="${THEME_JSON:-$HOME/.local/state/hexarchy/current/theme/firefox.json}"
+THEMES_MAP="${THEMES_MAP:-$HOME/.local/share/hexarchy/firefox-themes/themes.json}"
+
+incoming=""
+
+emit() {
+  local payload="$1"
+  local length="${#payload}"
+  local hex
+
+  hex=$(printf '%02x%02x%02x%02x' \
+    $((length & 255)) $(((length >> 8) & 255)) $(((length >> 16) & 255)) $(((length >> 24) & 255)))
+
+  printf '%b' "\\x${hex:0:2}\\x${hex:2:2}\\x${hex:4:2}\\x${hex:6:2}"
+  printf '%s' "$payload"
+}
+
+TMPD=$(mktemp -d)
+trap 'rm -rf "$TMPD"; exit 0' EXIT
+
+read_message() {
+  local length
+
+  incoming=""
+  dd bs=1 count=4 2>/dev/null >"$TMPD/header"
+  (( $(stat -c %s "$TMPD/header") == 4 )) || return 1
+  length=$(od -An -v -tu4 --endian=little "$TMPD/header" | tr -d ' ')
+
+  if (( length > 0 )); then
+    dd bs=1 count="$length" 2>/dev/null >"$TMPD/payload"
+    incoming=$(tr -d '\r\n\0' <"$TMPD/payload")
+    echo "$(date +%H:%M:%S.%3N) recv ${incoming:-<empty>}" >>"${HEXARCHY_FX_HOST_LOG:-/tmp/hexarchy-fx-host.log}"
+  fi
+}
+
+respond() {
+  local payload frame active_id slug json_obj
+
+  payload=$(jq -c . "$THEME_JSON" 2>/dev/null || true)
+  slug=$(cat "$HOME/.local/state/hexarchy/current/theme.name" 2>/dev/null || true)
+  active_id=$(jq -r --arg s "$slug" '.[$s] // empty' "$THEMES_MAP" 2>/dev/null || true)
+  frame=$(printf '%s' "$payload" | jq -r '.colors.frame // "none"' 2>/dev/null || true)
+  echo "$(date +%H:%M:%S.%3N) poll frame=$frame id=${active_id:-none} len=${#payload}" >>"${HEXARCHY_FX_HOST_LOG:-/tmp/hexarchy-fx-host.log}"
+
+  if [[ -n $payload ]]; then
+    json_obj=$(python3 - "$THEME_JSON" "$slug" "$active_id" <<'PY'
+import json, os, sys
+path, slug, active_id = sys.argv[1:4]
+alpha = float(os.environ.get("ALPHA", "1.0"))
+keys = frozenset((os.environ.get("ALPHA_KEYS", "frame frame_inactive toolbar toolbar_field popup sidebar ntp_background")).split())
+d = json.load(open(path))
+colors = d.get("colors", {})
+out = {}
+for k, v in colors.items():
+    if k in keys and isinstance(v, str) and v.startswith("#") and len(v) == 7:
+        r, g, b = (int(v[i:i+2], 16) for i in (1, 3, 5))
+        out[k] = "rgba(%d, %d, %d, %g)" % (r, g, b, alpha)
+    else:
+        out[k] = v
+print(json.dumps({"slug": slug, "activeThemeId": active_id or "", "colors": out,
+                  "properties": d.get("properties", {})}))
+PY
+)
+    emit "$json_obj"
+  else
+    emit '{"ok":false}'
+  fi
+}
+
+main() {
+  echo "$(date +%H:%M:%S.%3N) host started argv=$*" >>"${HEXARCHY_FX_HOST_LOG:-/tmp/hexarchy-fx-host.log}"
+  while read_message; do
+    respond
+  done
+}
+
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+  main "$@"
+fi
