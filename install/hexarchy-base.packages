@@ -82,7 +82,7 @@ docker-compose
 ufw-docker
 
 # ── Terminal & shell ─────────────────────────────────────────
-foot
+kitty
 nvim
 starship
 fzf
@@ -147,7 +147,7 @@ pinta
 xournalpp
 
 # ── Browsers ─────────────────────────────────────────────────
-chromium
+firefox
 
 # ── Productivity ─────────────────────────────────────────────
 libreoffice-fresh

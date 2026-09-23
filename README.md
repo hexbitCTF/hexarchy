@@ -19,13 +19,13 @@ Hexarchy brings the same stunning Hyprland + Quickshell desktop experience to a 
 | Boot splash | Plymouth | Quickshell screensaver |
 | Process supervisor | systemd cgroups | runit supervision |
 
-## Desktop Stack (Unchanged from Omarchy)
+## Desktop Stack
 
 - **Window Manager:** Hyprland (tiling compositor with animations)
 - **Desktop Shell:** Quickshell (bar, launcher, notifications, lock screen)
-- **Terminal:** Foot
+- **Terminal:** Kitty
 - **Editor:** Neovim
-- **Browser:** Chromium
+- **Browser:** Firefox
 - **Audio:** PipeWire + WirePlumber
 - **Theme System:** 22 built-in themes with live switching
 

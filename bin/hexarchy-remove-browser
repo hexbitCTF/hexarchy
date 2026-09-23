@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # hexarchy:summary=Remove a supported browser and clean up Hexarchy browser defaults
-# hexarchy:args=<chrome|brave|brave-origin|edge|firefox|zen>
-# hexarchy:examples=hexarchy remove browser firefox | hexarchy remove browser brave
+# hexarchy:args=<chromium|chrome|brave|brave-origin|edge|zen>
+# hexarchy:examples=hexarchy remove browser chromium | hexarchy remove browser brave
 # hexarchy:requires-sudo=true
 
 set_fallback_default_browser() {
@@ -13,12 +13,19 @@ set_fallback_default_browser() {
     return
   fi
 
-  if hexarchy-cmd-present chromium; then
-    env -u BROWSER xdg-settings set default-web-browser chromium.desktop || true
+  if hexarchy-cmd-present firefox; then
+    env -u BROWSER xdg-settings set default-web-browser firefox.desktop || true
   fi
 }
 
 case $1 in
+chromium)
+  echo "Removing Chromium..."
+  set_fallback_default_browser chromium.desktop
+  hexarchy-pkg-drop chromium
+  rm -f ~/.config/chromium-flags.conf
+  sudo rm -rf /etc/chromium
+  ;;
 chrome)
   echo "Removing Chrome..."
   set_fallback_default_browser google-chrome.desktop
@@ -53,18 +60,13 @@ brave-origin)
     sudo rm -rf /etc/brave
   fi
   ;;
-firefox)
-  echo "Removing Firefox..."
-  set_fallback_default_browser firefox.desktop
-  hexarchy-pkg-drop firefox
-  ;;
 zen)
   echo "Removing Zen..."
   set_fallback_default_browser zen.desktop
   hexarchy-pkg-drop zen-browser-bin
   ;;
 *)
-  echo "Usage: hexarchy-remove-browser <chrome|brave|brave-origin|edge|firefox|zen>"
+  echo "Usage: hexarchy-remove-browser <chromium|chrome|brave|brave-origin|edge|zen>"
   exit 1
   ;;
 esac
