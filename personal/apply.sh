@@ -35,6 +35,20 @@ if hexarchy-cmd-present hyprctl && [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; th
   echo "  reloaded Hyprland config"
 fi
 
+echo "Installing SDDM greeter theme-sync hook..."
+mkdir -p ~/.config/hexarchy/hooks/theme-set.d ~/.config/hexarchy/hooks/support/sddm-greeter
+cp -f "$PERSONAL_DIR/hexarchy-hooks/theme-set.d/sync-greeter-theme.sh" ~/.config/hexarchy/hooks/theme-set.d/
+chmod 755 ~/.config/hexarchy/hooks/theme-set.d/sync-greeter-theme.sh
+cp -f "$PERSONAL_DIR/hexarchy-hooks/support/sddm-greeter/Main.qml.template" ~/.config/hexarchy/hooks/support/sddm-greeter/
+cp -f "$PERSONAL_DIR/hexarchy-hooks/support/sddm-greeter/Wordmark.js" ~/.config/hexarchy/hooks/support/sddm-greeter/
+echo "  installed ~/.config/hexarchy/hooks/theme-set.d/sync-greeter-theme.sh"
+if hexarchy-cmd-present hexarchy-theme-refresh; then
+  hexarchy-theme-refresh
+  echo "  rendered SDDM greeter for the current theme"
+else
+  echo "  skip: run 'hexarchy theme refresh' once to render the greeter"
+fi
+
 echo "Setting up Firefox live theme sync..."
 if hexarchy-cmd-present hexarchy-firefox-themes && hexarchy-cmd-present hexarchy-install-firefox-theme; then
   hexarchy-firefox-themes

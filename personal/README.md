@@ -5,6 +5,7 @@ Personal, machine-independent overrides on top of the Hexarchy defaults in `defa
 Run `bash personal/apply.sh` on a machine that already has Hexarchy's base packages, Quickshell, and Hyprland set up, to bring over:
 
 - `hypr/bindings.lua`, `hypr/input.lua` -- personal Hyprland keybind and input overrides
+- `hexarchy-hooks/theme-set.d/sync-greeter-theme.sh` -- keeps the SDDM login greeter visually identical to the Hyprland lock screen, by re-rendering `hexarchy-hooks/support/sddm-greeter/Main.qml.template` with the active theme's colors on every `hexarchy theme set` (see `docs/` for why colors are baked in rather than read live)
 - Firefox live-theme sync setup (needs `hexarchy-firefox-themes` / `hexarchy-install-firefox-theme` from `bin/`, added alongside this)
 - A clone of the separately-versioned Neovim config (`github.com/hexbitCTF/nvim`)
 
