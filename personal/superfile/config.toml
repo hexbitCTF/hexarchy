@@ -168,7 +168,7 @@ enable_md5_checksum = false
 #
 #-- Zoxide Support - Smart directory navigation!
 # Requires: zoxide
-zoxide_support = false
+zoxide_support = true
 
 #-- File opening rules
 # Map file extensions to commands used to open them.
@@ -179,3 +179,17 @@ zoxide_support = false
 #   pdf = "zathura"
 #   conf = "nvim"
 [open_with]
+   jpg = "feh"
+   jpeg = "feh"
+   png = "feh"
+   webp = "feh"
+   gif = "feh"
+   bmp = "feh"
+   tif = "feh"
+   tiff = "feh"
+   svg = "feh"
+   avif = "feh"
+   ico = "feh"
+   heic = "feh"
+#   pdf = "zathura"
+#   conf = "nvim"
