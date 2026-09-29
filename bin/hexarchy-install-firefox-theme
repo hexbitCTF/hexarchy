@@ -12,7 +12,21 @@ EXTENSION_DIR="$HOME/.local/share/hexarchy/firefox-theme"
 HOST_PATH="$HOME/.local/bin/hexarchy-firefox-theme-host"
 XPI_PATH="$EXTENSION_DIR/$EXTENSION_ID.xpi"
 
-PROFILE_BASE="$HOME/.config/mozilla/firefox"
+PROFILE_BASE=""
+for candidate in "$HOME/.mozilla/firefox" "$HOME/.config/mozilla/firefox"; do
+  if [[ -f "$candidate/profiles.ini" ]]; then
+    PROFILE_BASE="$candidate"
+    break
+  fi
+done
+
+if [[ -z $PROFILE_BASE ]]; then
+  echo "No Firefox profiles.ini found in ~/.mozilla/firefox or ~/.config/mozilla/firefox." >&2
+  echo "Launch Firefox once so it creates a profile, then re-run this." >&2
+  exit 1
+fi
+
+installed=0
 
 build_xpi() {
   local tmp
@@ -76,6 +90,7 @@ install_profile_addon_into() {
 
   mkdir -p "$dir/extensions"
   cp -f "$XPI_PATH" "$dir/extensions/$EXTENSION_ID.xpi"
+  installed=$((installed + 1))
   echo "  installed: $dir/extensions/$EXTENSION_ID.xpi"
 }
 
@@ -83,5 +98,13 @@ build_xpi
 install_native_manifest
 install_profile_addon "${1:-}"
 
-echo "Hexarchy Firefox live theme installed."
+# Installing into zero profiles used to print the success line below anyway,
+# which is how a machine with the profiles under ~/.mozilla/firefox ended up
+# believing the extension was in place when nothing had been written.
+if (( installed == 0 )); then
+  echo "Installed nothing: no profile directories found under $PROFILE_BASE." >&2
+  exit 1
+fi
+
+echo "Hexarchy Firefox live theme installed into $installed profile(s)."
 echo "Restart Firefox to pick up the extension."
