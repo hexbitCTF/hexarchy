@@ -40,4 +40,7 @@ for scheme in "${schemes[@]}"; do
   xdg-mime default "$desktop_id" "$scheme"
 done
 
-hexarchy-notification-send -g $glyph "$name ($desktop_id) is now the default browser"
+# Best-effort: on a systemd-free host the notifier needs a user bus that does
+# not exist, and the desktop entry is already set by this point, so a failed
+# toast must not make the command look like it failed.
+hexarchy-notification-send -g $glyph "$name ($desktop_id) is now the default browser" >/dev/null 2>&1 || true
