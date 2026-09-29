@@ -67,18 +67,49 @@ fi
 
 echo "whatsapp-webapp-launch: using $firefox_bin" >&2
 
-# The dedicated profile has to exist before --profile will attach to it. Both
-# the wrapper and firefox-bin treat a missing --profile path as a hard error
-# ("Could not find profile folder") rather than an instruction to create it,
-# and -CreateProfile is a no-op on these builds. An existing empty directory is
+# The dedicated profile lives inside whichever root this machine's Firefox
+# actually uses -- ~/.mozilla/firefox by default, or ~/.config/mozilla/firefox
+# when something relocated it under XDG. Keeping it under the real root matters
+# for two reasons: the theme-set hooks enumerate profiles through that root's
+# profiles.ini, so a profile parked outside it never gets the Hexarchy theme,
+# and Firefox only discovers profiles it knows about.
+PROFILE_BASE=""
+for candidate in "$HOME/.mozilla/firefox" "$HOME/.config/mozilla/firefox"; do
+  if [[ -f "$candidate/profiles.ini" ]]; then
+    PROFILE_BASE="$candidate"
+    break
+  fi
+done
+
+if [[ -z $PROFILE_BASE ]]; then
+  echo "No Firefox profiles.ini in ~/.mozilla/firefox or ~/.config/mozilla/firefox." >&2
+  echo "Launch Firefox once so it creates a profile, then re-run this." >&2
+  exit 1
+fi
+
+profile_name="whatsapp-app"
+profile_dir="$PROFILE_BASE/$profile_name"
+
+# --profile against a path that does not exist is a hard error in both the
+# firefox wrapper and firefox-bin ("Could not find profile folder"), and
+# -CreateProfile is a no-op on these builds. An existing empty directory is
 # enough: Firefox initialises a full profile into it on first launch.
-profile_dir="$HOME/.config/mozilla/firefox/whatsapp-app-profile"
-if [[ ! -d $profile_dir ]]; then
-  echo "whatsapp-webapp-launch: creating profile dir $profile_dir" >&2
-  mkdir -p "$profile_dir" || {
-    echo "whatsapp-webapp-launch: could not create $profile_dir" >&2
-    exit 1
-  }
+mkdir -p "$profile_dir" || {
+  echo "whatsapp-webapp-launch: could not create $profile_dir" >&2
+  exit 1
+}
+
+# Register it so Firefox and the theme hooks can see it. Idempotent.
+if ! grep -q "^Path=$profile_name$" "$PROFILE_BASE/profiles.ini" 2>/dev/null; then
+  {
+    echo ""
+    echo "[Profile$profile_name]"
+    echo "Name=whatsapp-app"
+    echo "IsRelative=1"
+    echo "Path=$profile_name"
+    echo "Default=1"
+  } >>"$PROFILE_BASE/profiles.ini"
+  echo "whatsapp-webapp-launch: registered profile $profile_name in $PROFILE_BASE/profiles.ini" >&2
 fi
 
 exec hyprctl dispatch "hl.dsp.exec_cmd(\"setsid uwsm-app -- $firefox_bin --profile $profile_dir --kiosk --new-window https://web.whatsapp.com\", { fullscreen_state = \"0 2\" })"
