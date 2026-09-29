@@ -32,4 +32,19 @@ fi
 # separate profile makes this app's process (and its remoting) completely
 # independent from your regular Firefox, permanently. Costs one QR re-scan
 # the first time only; the profile stays logged in after that.
-exec hyprctl dispatch "hl.dsp.exec_cmd(\"setsid uwsm-app -- /opt/firefox-developer-edition/firefox --profile $HOME/.config/mozilla/firefox/whatsapp-app-profile --kiosk --new-window https://web.whatsapp.com\", { fullscreen_state = \"0 2\" })"
+#
+# The Firefox binary is resolved rather than hardcoded: a tarball install
+# lives at /opt/firefox-developer-edition/firefox, while other layouts put
+# firefox-dev on PATH. Prefer the tarball path when it exists, else fall back
+# to whatever `firefox-dev` resolves to.
+firefox_bin="/opt/firefox-developer-edition/firefox"
+if [[ ! -x $firefox_bin ]]; then
+  firefox_bin="$(command -v firefox-dev || true)"
+fi
+
+if [[ -z $firefox_bin || ! -x $firefox_bin ]]; then
+  echo "Firefox Developer Edition not found (looked for /opt/firefox-developer-edition/firefox and firefox-dev on PATH)." >&2
+  exit 1
+fi
+
+exec hyprctl dispatch "hl.dsp.exec_cmd(\"setsid uwsm-app -- $firefox_bin --profile $HOME/.config/mozilla/firefox/whatsapp-app-profile --kiosk --new-window https://web.whatsapp.com\", { fullscreen_state = \"0 2\" })"

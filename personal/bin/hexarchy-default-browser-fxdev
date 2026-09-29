@@ -1,14 +1,31 @@
 #!/bin/bash
 
 # Set Firefox Developer Edition as the default browser for Hexarchy and XDG
-# scheme handlers. Mirrors hexarchy-default-browser but wired to the
-# firefox-developer-edition desktop entry installed on this machine.
+# scheme handlers. Mirrors hexarchy-default-browser but wired to a
+# firefox-developer-edition install.
+#
+# The desktop entry name is not the same everywhere: a tarball install ships
+# firefox-developer-edition.desktop, a distro package or a /opt/firefox-dev
+# layout ships firefox-dev.desktop. Look for whichever one is actually
+# installed rather than assuming, so this works on more than one machine.
 
 browser="firefox-dev"
 command="firefox-dev"
-desktop_id="firefox-developer-edition.desktop"
 name="Firefox Developer Edition"
 glyph=󰈹
+
+desktop_id=""
+for candidate in firefox-developer-edition.desktop firefox-dev.desktop firefox.desktop; do
+  if [[ -e "/usr/share/applications/$candidate" || -e "$HOME/.local/share/applications/$candidate" ]]; then
+    desktop_id="$candidate"
+    break
+  fi
+done
+
+if [[ -z $desktop_id ]]; then
+  echo "No Firefox desktop entry found in /usr/share/applications." >&2
+  exit 1
+fi
 
 schemes=(
   x-scheme-handler/http
@@ -23,4 +40,4 @@ for scheme in "${schemes[@]}"; do
   xdg-mime default "$desktop_id" "$scheme"
 done
 
-hexarchy-notification-send -g $glyph "$name is now the default browser"
+hexarchy-notification-send -g $glyph "$name ($desktop_id) is now the default browser"
