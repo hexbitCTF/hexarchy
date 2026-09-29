@@ -66,4 +66,19 @@ if [[ -z $firefox_bin || ! -x $firefox_bin ]]; then
 fi
 
 echo "whatsapp-webapp-launch: using $firefox_bin" >&2
-exec hyprctl dispatch "hl.dsp.exec_cmd(\"setsid uwsm-app -- $firefox_bin --profile $HOME/.config/mozilla/firefox/whatsapp-app-profile --kiosk --new-window https://web.whatsapp.com\", { fullscreen_state = \"0 2\" })"
+
+# The dedicated profile has to exist before --profile will attach to it. Both
+# the wrapper and firefox-bin treat a missing --profile path as a hard error
+# ("Could not find profile folder") rather than an instruction to create it,
+# and -CreateProfile is a no-op on these builds. An existing empty directory is
+# enough: Firefox initialises a full profile into it on first launch.
+profile_dir="$HOME/.config/mozilla/firefox/whatsapp-app-profile"
+if [[ ! -d $profile_dir ]]; then
+  echo "whatsapp-webapp-launch: creating profile dir $profile_dir" >&2
+  mkdir -p "$profile_dir" || {
+    echo "whatsapp-webapp-launch: could not create $profile_dir" >&2
+    exit 1
+  }
+fi
+
+exec hyprctl dispatch "hl.dsp.exec_cmd(\"setsid uwsm-app -- $firefox_bin --profile $profile_dir --kiosk --new-window https://web.whatsapp.com\", { fullscreen_state = \"0 2\" })"
