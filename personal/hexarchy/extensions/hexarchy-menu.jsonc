@@ -49,6 +49,22 @@
     "action": "hexarchy launch or focus org.localsend.localsend_app localsend"
   },
 
+  // Show the current song's lyrics, without leaving the menu.
+  //
+  // Only offered while pixeltui is up: there is no current song otherwise, so
+  // the row would have nothing to act on. pixeltui toggles the overlay with
+  // `y` and exposes no external control channel -- its IPC socket is mpv's and
+  // only carries transport commands -- so focus its window and send the key.
+  // The pause lets the focus change land before the keystroke goes out;
+  // wtype delivers to whatever is focused, so the order matters.
+  "trigger.lyrics": {
+    "icon": "",
+    "label": "Lyrics",
+    "aliases": ["lyrics", "lyric", "song lyrics", "pixeltui lyrics"],
+    "when": "pgrep -x pixeltui >/dev/null",
+    "action": "hexarchy-hyprland-focus-app pixeltui && sleep 0.4 && wtype -k y"
+  },
+
   // Voxtype push-to-talk voice-to-text: daemon on/off + recording toggle.
   // The daemon runs as a plain background process here (no systemd user
   // manager), so the toggles manage it directly. State is read from
