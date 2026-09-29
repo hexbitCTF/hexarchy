@@ -155,5 +155,50 @@ PY
 
 install_to_profiles
 
+# A static theme is inert until extensions.activeThemeID points at it, and that
+# pref is normally written by the theme-set hooks -- which only run when someone
+# changes theme. On a machine that has never run `hexarchy theme set`, the .xpi
+# files land in extensions/ and nothing is ever activated, so the browser keeps
+# its stock theme with no obvious cause. Activate the current theme here as well,
+# so installing is self-sufficient.
+activate_current_theme() {
+  local themes_json="$OUT/themes.json"
+  local slug id prefs
+
+  slug=$(cat "$HOME/.local/state/hexarchy/current/theme.name" 2>/dev/null || true)
+  [[ -n $slug && -f $themes_json ]] || {
+    echo "  skip activation: no current theme recorded" >&2
+    return 0
+  }
+
+  id=$(jq -r --arg t "$slug" '.[$t] // empty' "$themes_json" 2>/dev/null)
+  if [[ -z $id ]]; then
+    echo "  skip activation: '$slug' is not in the theme mapping" >&2
+    return 0
+  fi
+
+  # Read the profile list into a plain loop rather than a process substitution:
+  # a `[[ ... ]] && echo` as the final command in a subshell body trips `set -e`
+  # on the first profile that lacks prefs.js, which silently truncated the list.
+  local paths
+  paths=$(awk -F= '/^Path=/{print $2}' "$PROFILE_BASE/profiles.ini" 2>/dev/null || true)
+
+  for p in $paths; do
+    prefs="$PROFILE_BASE/$p/prefs.js"
+    if [[ ! -f $prefs ]]; then
+      continue
+    fi
+
+    if grep -q '"extensions.activeThemeID"' "$prefs" 2>/dev/null; then
+      sed -i -E "s/^user_pref\(\"extensions\.activeThemeID\", \"[^\"]*\"\);.*$/user_pref(\"extensions.activeThemeID\", \"$id\");/" "$prefs"
+    else
+      printf 'user_pref("extensions.activeThemeID", "%s");\n' "$id" >>"$prefs"
+    fi
+    echo "  activated $id in $PROFILE_BASE/$p"
+  done
+}
+
+activate_current_theme
+
 echo "Generated $(ls "$OUT"/*.xpi | wc -l) Firefox themes in $OUT"
 echo "Mapping: $OUT/themes.json"
