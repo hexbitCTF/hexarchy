@@ -1,0 +1,75 @@
+{
+  // Redirect the Hardware > "Laptop Display" row to the hyprmoncfg-aware
+  // toggle, so manual display control stays consistent with hyprmoncfg
+  // profiles (default = internal off, internal = internal on).
+  // NOTE: the menu merges per-field AFTER normalizing, so every field must be
+  // re-supplied here or it reverts to the normalized default (label -> id).
+  "trigger.hardware.laptop-display": {
+    "icon": "󰍹",
+    "label": "Laptop Display",
+    "when": "hexarchy-hw-laptop",
+    "action": "laptop-display-toggle"
+  },
+
+  // Neovim keybindings submenu under Learn
+  "learn.nvim-keybindings": {"icon":"󰘚","label":"Neovim Keys","aliases":["vim","nvim","neovim"],"action":"hexarchy-menu-nvim-keybindings"},
+
+  // Add Firefox Developer Edition to the Defaults > Browser picker
+  "setup.default.browser.firefox-dev": {
+    "icon": "󰈹",
+    "label": "Firefox Dev",
+    "checked": "[[ \"$(env -u BROWSER xdg-settings get default-web-browser)\" == \"firefox-developer-edition.desktop\" ]]",
+    "action": "hexarchy-default-browser-fxdev"
+  },
+
+  // Share submenu via LocalSend, mirroring OMArchi quattro's trigger.share.
+  "trigger.share": {
+    "icon": "󰢹",
+    "label": "Share",
+    "aliases": ["share", "localsend", "send"]
+  },
+  "trigger.share.clipboard": {
+    "icon": "󰆏",
+    "label": "Clipboard",
+    "action": "hexarchy share clipboard"
+  },
+  "trigger.share.file": {
+    "icon": "󰈔",
+    "label": "File",
+    "action": "hexarchy share file"
+  },
+  "trigger.share.folder": {
+    "icon": "󰉋",
+    "label": "Folder",
+    "action": "hexarchy share folder"
+  },
+  "trigger.share.receive": {
+    "icon": "󰜥",
+    "label": "Receive",
+    "action": "hexarchy launch or focus org.localsend.localsend_app localsend"
+  },
+
+  // Voxtype push-to-talk voice-to-text: daemon on/off + recording toggle.
+  // The daemon runs as a plain background process here (no systemd user
+  // manager), so the toggles manage it directly. State is read from
+  // `voxtype status --format json` (alt: stopped | idle | recording |
+  // transcribing).
+  "trigger.voxtype": {
+    "icon": "󰍬",
+    "label": "Voxtype",
+    "aliases": ["voxtype", "voice", "voice-to-text", "voice to text", "stt"],
+    "when": "hexarchy-cmd-present voxtype"
+  },
+  "trigger.voxtype.daemon": {
+    "icon": "󰙯",
+    "label": "Daemon",
+    "checked": "voxtype status --format json | grep -qE '\"alt\": \"(idle|recording|transcribing)\"'",
+    "action": "if [[ \"$(voxtype status --format json)\" == *'\"alt\": \"stopped\"'* ]]; then setsid voxtype daemon </dev/null >/dev/null 2>&1 & else pkill -15 -f '^voxtype daemon'; fi"
+  },
+  "trigger.voxtype.record": {
+    "icon": "󰍛",
+    "label": "Record",
+    "checked": "voxtype status --format json | grep -q '\"alt\": \"recording\"'",
+    "action": "voxtype record toggle"
+  }
+}

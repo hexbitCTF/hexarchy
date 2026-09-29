@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+"""Batch-download a CSV playlist of YouTube video IDs into ~/Music.
+
+Rows are expected to have: Title, Artist, Album, YouTube Video ID
+Extra columns are ignored. Files land in
+  ~/Music/<Artist>/<Album>/<Title>.mp3   (or ~/Music/<Artist>/<Title>.mp3
+  when the Album column is empty)
+with ID3 tags taken from the CSV rather than from YouTube.
+
+Usage: yt-csv-offline [csv] [--workers N] [--quality KBPS] [--dest DIR]
+"""
+
+import argparse
+import csv
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import unicodedata
+from concurrent.futures import ThreadPoolExecutor
+
+BAD_CHARS = re.compile(r'[\x00-\x1f\x7f]')
+WS = re.compile(r"\s+")
+YTDLP = shutil.which("yt-dlp") or "yt-dlp"
+print_lock = threading.Lock()
+
+
+def log(msg):
+    with print_lock:
+        print(msg, flush=True)
+
+
+def fs_safe(name, fallback="Unknown", limit=170):
+    s = unicodedata.normalize("NFC", name or "")
+    s = BAD_CHARS.sub("", s)
+    s = s.replace("/", "-").replace("\\", "-")
+    s = WS.sub(" ", s).strip(" .")
+    while len(s.encode("utf-8")) > limit:
+        s = s[:-1]
+    return s or fallback
+
+
+def clean_tag(name):
+    s = BAD_CHARS.sub("", name or "")
+    return WS.sub(" ", s).strip()
+
+
+def probe_duration(path):
+    try:
+        out = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+             "-of", "default=nw=1:nk=1", path],
+            capture_output=True, text=True, timeout=60,
+        ).stdout.strip()
+        return float(out)
+    except Exception:
+        return 0.0
+
+
+def tag_mp3(src, dest, meta):
+    cmd = ["ffmpeg", "-loglevel", "error", "-y", "-i", src, "-c", "copy",
+           "-id3v2_version", "3", "-write_id3v1", "0"]
+    for key, value in meta.items():
+        if value:
+            cmd += ["-metadata", f"{key}={value}"]
+    cmd.append(dest)
+    subprocess.run(cmd, check=True, timeout=300)
+
+
+def download(row, dest_root, quality):
+    title, artist, album, vid = (row.get(k, "").strip()
+                                 for k in ("Title", "Artist", "Album",
+                                           "YouTube Video ID"))
+    tag_title = clean_tag(title) or vid
+    tag_artist = clean_tag(artist) or "Unknown Artist"
+    tag_album = clean_tag(album)
+
+    folder = os.path.join(dest_root, fs_safe(artist, "Unknown Artist"))
+    if album:
+        folder = os.path.join(folder, fs_safe(album, "Unknown Album"))
+    final = os.path.join(folder, fs_safe(title, vid) + ".mp3")
+
+    if os.path.exists(final) and os.path.getsize(final) > 20_000:
+        return "skip", final
+
+    tmpdir = tempfile.mkdtemp(prefix="ytcsv-", dir=os.path.expanduser("~/.cache"))
+    try:
+        for attempt in (1, 2, 3):
+            cmd = [YTDLP, "--no-playlist", "--no-progress", "--newline",
+                   "-f", "bestaudio/best", "-x",
+                   "--audio-format", "mp3", "--audio-quality", quality,
+                   "--retries", "5", "--fragment-retries", "5",
+                   "--retry-sleep", "exp=1:20", "--socket-timeout", "30",
+                   "-o", os.path.join(tmpdir, "%(id)s.%(ext)s"),
+                   f"https://www.youtube.com/watch?v={vid}"]
+            proc = subprocess.run(cmd, capture_output=True, text=True,
+                                  timeout=900)
+            produced = [f for f in os.listdir(tmpdir) if f.endswith(".mp3")]
+            if proc.returncode == 0 and produced:
+                break
+            shutil.rmtree(tmpdir, ignore_errors=True)
+            os.makedirs(tmpdir, exist_ok=True)
+            if attempt < 3:
+                time.sleep(5 * attempt)
+        else:
+            err = (proc.stderr or proc.stdout or "").strip().splitlines()
+            return "fail: " + (err[-1][:120] if err else "unknown error"), final
+
+        src = os.path.join(tmpdir, produced[0])
+        dur = probe_duration(src)
+        if dur < 5:
+            return "fail: too short / not audio", final
+
+        os.makedirs(folder, exist_ok=True)
+        tag_mp3(src, final, {
+            "title": tag_title, "artist": tag_artist,
+            "album": tag_album, "album_artist": tag_artist,
+        })
+        return "ok", final
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("csv", nargs="?", default="~/Downloads/Offline.csv")
+    ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--quality", default="192")
+    ap.add_argument("--dest", default="~/Music")
+    args = ap.parse_args()
+
+    csv_path = os.path.expanduser(args.csv)
+    dest_root = os.path.expanduser(args.dest)
+    with open(csv_path, encoding="utf-8-sig", newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    rows = [r for r in rows if (r.get("YouTube Video ID") or "").strip()]
+
+    os.makedirs(dest_root, exist_ok=True)
+    os.makedirs(os.path.expanduser("~/.cache"), exist_ok=True)
+    log(f"{len(rows)} tracks -> {dest_root}  ({args.workers} workers, "
+        f"{args.quality}kbps)")
+
+    counts, failures = {}, []
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        futures = {pool.submit(download, r, dest_root, args.quality): r
+                   for r in rows}
+        for i, fut in enumerate(futures, 1):
+            row = futures[fut]
+            try:
+                status, path = fut.result()
+            except Exception as exc:
+                status, path = f"fail: {exc}"[:120], ""
+            kind = status.split(":")[0]
+            counts[kind] = counts.get(kind, 0) + 1
+            if kind == "fail":
+                failures.append((row.get("Artist"), row.get("Title"),
+                                 row.get("YouTube Video ID"), status))
+            if i % 5 == 0 or kind != "ok":
+                el = time.time() - t0
+                eta = el / i * (len(rows) - i)
+                log(f"[{i}/{len(rows)}] {status:<12} {row.get('Artist','')}"
+                    f" - {row.get('Title','')}"
+                    f"   ({el/60:.1f}m elapsed, ~{eta/60:.0f}m left)")
+
+    log("")
+    for k in ("ok", "skip", "fail"):
+        if counts.get(k):
+            log(f"{k}: {counts[k]}")
+    if failures:
+        log("\nfailures:")
+        for a, t, v, s in failures:
+            log(f"  {v}  {a} - {t}   {s}")
+    log(f"\ndone in {(time.time()-t0)/60:.1f} min")
+    return 1 if failures else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

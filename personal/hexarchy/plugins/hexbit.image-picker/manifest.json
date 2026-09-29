@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "hexbit.image-picker",
+  "name": "My Image picker",
+  "version": "1.0.0",
+  "author": "Hexarchy",
+  "description": "Image-grid selector overlay used for wallpapers, themes, and any other directory of images",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "ImagePicker.qml"
+  },
+  "hexarchy": {
+    "clonedFrom": "hexarchy.image-picker"
+  }
+}

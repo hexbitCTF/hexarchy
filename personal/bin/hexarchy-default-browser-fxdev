@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Set Firefox Developer Edition as the default browser for Hexarchy and XDG
+# scheme handlers. Mirrors hexarchy-default-browser but wired to the
+# firefox-developer-edition desktop entry installed on this machine.
+
+browser="firefox-dev"
+command="firefox-dev"
+desktop_id="firefox-developer-edition.desktop"
+name="Firefox Developer Edition"
+glyph=󰈹
+
+schemes=(
+  x-scheme-handler/http
+  x-scheme-handler/https
+  x-scheme-handler/ftp
+  x-scheme-handler/about
+)
+
+env -u BROWSER xdg-settings set default-web-browser "$desktop_id" || exit 1
+
+for scheme in "${schemes[@]}"; do
+  xdg-mime default "$desktop_id" "$scheme"
+done
+
+hexarchy-notification-send -g $glyph "$name is now the default browser"

@@ -1,0 +1,94 @@
+#!/bin/bash
+# Keep the laptop's mutually-exclusive analog outputs in step with the
+# headphone jack.
+#
+# This laptop's ALC257 exposes Speaker and Headphones as separate ACP HiFi
+# profiles (one analog output at a time), and WirePlumber is configured not to
+# auto-switch profiles. This process watches the card's "Headphones" port
+# availability and flips the profile itself:
+#   - jack populated  -> Headphones profile (audio out to the earphones)
+#   - jack empty      -> Speaker profile (back to the laptop speakers)
+#
+# It only reacts to a settled change in jack state, so a manual pick from the
+# audio panel (Speakers while earphones are plugged, or the reverse) holds
+# until the next plug/unplug. A plug/unplug event also clears the manual
+# microphone pick (audio-input-lock) so the noise-gated input follows the jack
+# again; the mic noise-gate connect loop does the input side.
+
+card="alsa_card.pci-0000_00_1f.3-platform-skl_hda_dsp_generic"
+state="${XDG_STATE_HOME:-$HOME/.local/state}/hexarchy"
+mkdir -p "$state" 2>/dev/null || true
+input_lock="$state/audio-input-lock"
+
+# Only one watcher may run (hypr reloads autostarts).
+exec 9>"$state/analog-watch.lock"
+flock -n 9 || exit 0
+
+profile() {
+	pactl list cards 2>/dev/null | awk '
+		$1 == "Name:" && $2 == c { want = 1; next }
+		want && /Active Profile:/ { sub(/.*Active Profile: /, ""); print; exit }
+	' c="$card"
+}
+
+hp_avail() {
+	pactl list cards 2>/dev/null | awk '
+		$1 == "Name:" && $2 == c { want = 1; next }
+		want && /\[Out\] Headphones:/ { print (index($0, "not available") ? 0 : 1); exit }
+	' c="$card"
+}
+
+for _ in $(seq 1 60); do
+	pactl info >/dev/null 2>&1 && break
+	sleep 1
+done
+
+# Seed the baseline so the first poll never looks like a flip.
+last=""
+pending=""
+count=0
+
+while true; do
+	now="$(hp_avail)"
+	now="${now:-0}"
+
+	if [ -z "$last" ]; then
+		last="$now"
+		continue
+	fi
+
+	if [ "$now" != "$last" ]; then
+		# A candidate flip. Only act once it has held for a few polls, so a
+		# re-sensing codec (or a profile switch) cannot thrash the output.
+		if [ "$now" = "$pending" ]; then
+			count=$((count + 1))
+			if [ "$count" -ge 2 ]; then
+				# Real plug/unplug: drop manual picks so auto behaviour resumes.
+				rm -f "$input_lock" 2>/dev/null || true
+
+				active="$(profile)"
+				case "$active" in
+					*"Headphones"*) current="headphones" ;;
+					*"Speaker"*)    current="speaker" ;;
+					*)              current="" ;;
+				esac
+				desired="$([ "$now" = "1" ] && echo headphones || echo speaker)"
+				if [ -n "$current" ] && [ "$current" != "$desired" ]; then
+					hexarchy-audio-analog-toggle "$desired" >/dev/null 2>&1 &
+				fi
+
+				last="$now"
+				pending=""
+				count=0
+			fi
+		else
+			pending="$now"
+			count=1
+		fi
+	else
+		pending=""
+		count=0
+	fi
+
+	sleep 2
+done

@@ -1,0 +1,54 @@
+#!/bin/bash
+# Fix the frozen headphone-jack sense after a cold boot.
+#
+# The Realtek ALC257 on this laptop exposes its headphone output as its own
+# ACP profile (WirePlumber treats Speaker and Headphones as mutually exclusive
+# HiFi profiles, selected by jack availability). The kernel only reports the
+# jack when the codec has processed an unsolicited insertion response, and on
+# a machine that boots with earphones already in the jack that event never
+# arrives: detection stays "not inserted" and the laptop boots on its speakers
+# through the earphones, silent.
+#
+# Forcing the headphone profile re-initialises the headphone pin, which makes
+# the codec emit the sense it should have at boot; WirePlumber then reconciles
+# the active profile with the corrected availability. If nothing is actually
+# plugged, the corrected sense reports unavailable and we put the speakers back.
+# Converges to the right profile in every case; idempotent when earphones are
+# already active.
+
+card="alsa_card.pci-0000_00_1f.3-platform-skl_hda_dsp_generic"
+headphones_profile="HiFi (HDMI1, HDMI2, HDMI3, Headphones, Mic1, Mic2)"
+speakers_profile="HiFi (HDMI1, HDMI2, HDMI3, Mic1, Mic2, Speaker)"
+hpsink='Headphones__sink'
+
+# Wait for the audio server to come up.
+for _ in $(seq 1 60); do
+	pactl info >/dev/null 2>&1 && break
+	sleep 1
+done
+
+active_profile() {
+	pactl list cards 2>/dev/null | awk '
+		$1 == "Name:" && $2 == c { want = 1; next }
+		want && /Active Profile:/ { sub(/.*Active Profile: /, ""); print; exit }
+	' c="$card"
+}
+
+active="$(active_profile)"
+[[ -z "$active" ]] && exit 0
+[[ "$active" == "$headphones_profile" ]] && exit 0
+
+# Kick the codec: activation re-initialises the headphone pin sense.
+pactl set-card-profile "$card" "$headphones_profile" 2>/dev/null || exit 0
+
+# Give the re-sensed availability a moment, then check the headphone sink is
+# really usable. If the jack is empty, WirePlumber itself will also drop the
+# profile (its stored-profile policy only restores profiles that are
+# available), so falling back is a belt-and-braces step rather than a guess.
+sleep 1.5
+if ! hexarchy-audio-sink-availability 2>/dev/null | awk -F '\t' -v s="$hpsink" \
+	'$1 ~ s && $2 != "0" { found = 1 } END { exit !found }'; then
+	pactl set-card-profile "$card" "$speakers_profile" 2>/dev/null
+fi
+
+exit 0

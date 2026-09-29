@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+# Only invite when there's a reader to use and it isn't set up yet (the lock
+# PAM file is the last thing the setup writes on success).
+if hexarchy-hw-fingerprint && [[ ! -f /etc/pam.d/hexarchy-lock-fingerprint ]] &&
+  hexarchy-done ensure fingerprint-setup-invitation; then
+  hexarchy-notification-send -u critical -g 󰈷 "Setup Fingerprint Reader" \
+    "Enable sudo and unlocking with your fingerprint." \
+    --exec hexarchy-launch-floating-terminal-with-presentation hexarchy-setup-security-fingerprint
+fi

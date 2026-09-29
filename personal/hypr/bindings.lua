@@ -28,8 +28,18 @@ o.bind("SUPER + DOWN", "Toggle window split", hl.dsp.layout("togglesplit"))
 o.bind("SUPER + SHIFT + K", "Keybindings", "hexarchy menu keybindings")
 o.bind("SUPER + SHIFT + V", "Neovim keybindings", "hexarchy-menu-nvim-keybindings")
 
+-- Was Google Photos by default.
+hl.unbind("SUPER + SHIFT + P")
+o.bind("SUPER + SHIFT + P", "pixeltui keybindings", "hexarchy-menu-pixeltui-keybindings")
+
 -- LocalSend share menu (like OMArchi quattro's Super+Ctrl+S)
 o.bind("SUPER + CTRL + S", "Share menu", "hexarchy menu summon trigger.share")
+
+-- Stock Hardware menu binding targets IPC id "hexarchy.menu", but that plugin
+-- is disabled in favor of its clone "hexbit.menu" (shell.json), so it silently
+-- did nothing. Rebind to hit the clone that's actually running.
+hl.unbind("SUPER + CTRL + H")
+o.bind("SUPER + CTRL + H", "Hardware menu", "hexarchy-shell shell toggle hexbit.menu '{\"menu\":\"hardware\"}'")
 
 -- Add a new binding.
 -- o.bind("SUPER + SHIFT + R", "SSH", "alacritty -e ssh your-server")
@@ -58,6 +68,16 @@ o.bind("SUPER + CTRL + Delete", "Toggle laptop display", "laptop-display-toggle"
 -- o.bind("SUPER + H", nil, "voxtype record toggle")
 -- o.bind("SUPER + PERIOD", nil, "hexarchy-shell shell toggle hexarchy.emojis")
 
+-- Was Close window (SUPER+Q still closes windows).
+hl.unbind("SUPER + W")
+o.bind("SUPER + W", "WhatsApp", "whatsapp-webapp-launch")
+
+-- Stock binding used the generic default-profile webapp launcher, which
+-- would reopen WhatsApp outside the isolated/kiosk profile above. Point it
+-- at the same launcher so both shortcuts behave identically.
+hl.unbind("SUPER + SHIFT + ALT + G")
+o.bind("SUPER + SHIFT + ALT + G", "WhatsApp", "whatsapp-webapp-launch")
+
 -- Browser keybinds: hardwire the hardened launcher in ~/.local/bin (absolute
 -- path, since Hyprland puts /usr/share/hexarchy/bin first on PATH). The stock
 -- hexarchy-launch-browser breaks when Firefox sets itself as default, because
@@ -70,3 +90,11 @@ hl.unbind("SUPER + SHIFT + ALT + B")  -- was Browser (private)
 o.bind("SUPER + SHIFT + RETURN", "Browser", browser_launch)
 o.bind("SUPER + SHIFT + B", "Browser", browser_launch)
 o.bind("SUPER + SHIFT + ALT + B", "Browser (private)", browser_launch .. " --private")
+
+-- Lazygit has no default binding; the app launcher entry covers the menu.
+-- SUPER + SHIFT + D already opens lazydocker (default binding), but it reads as
+-- an "app" key, so the Docker TUI also gets a SUPER + CTRL + D next to the Git
+-- one. The stock Display binding is dropped to make room for it.
+hl.unbind("SUPER + CTRL + D")
+o.bind("SUPER + CTRL + G", "Git", { tui = "lazygit" })
+o.bind("SUPER + CTRL + D", "Docker", { tui = "hexarchy-launch-docker-tui" })

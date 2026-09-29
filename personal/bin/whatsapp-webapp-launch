@@ -1,0 +1,35 @@
+#!/bin/bash
+# WhatsApp web app launcher.
+#
+# First checks for an already-open WhatsApp window and just focuses it -
+# Firefox's --kiosk mode always cold-starts a brand new browser process
+# (it can't share a running instance the way a normal new window/tab can),
+# so re-launching every click would mean paying that startup cost every
+# time. Focusing an existing window is instant; only a genuinely fresh
+# launch pays the cold-start cost.
+WINDOW_ADDRESS=$(hyprctl clients -j | jq -r '.[]|select(.class=="firefox-dev" and (.title|test("^WhatsApp")))|.address' | head -n1)
+
+if [[ -n $WINDOW_ADDRESS ]]; then
+  exec hyprctl dispatch "hl.dsp.focus({ window = \"address:$WINDOW_ADDRESS\" })"
+fi
+
+# Fresh launch: use Hyprland's exec_cmd dispatcher, which attaches a window
+# rule to the exact process it spawns (matched by PID) - no title/class
+# matching race, so the rule is active before Firefox's kiosk mode ever
+# requests fullscreen (no flash).
+#
+# fullscreen_state = "0 2" decouples what Hyprland does from what Firefox is
+# told: internal=0 keeps the window tiled with normal gaps, client=2 tells
+# Firefox it IS fullscreen so kiosk mode keeps its chrome hidden.
+# (suppress_event=fullscreen alone just blocks the request outright, which
+# left Firefox thinking it failed and re-showing its toolbar.)
+#
+# --profile points this at a dedicated profile instead of the default one.
+# Firefox's kiosk mode and single-instance remoting are both whole-process
+# (really whole-profile) settings, not per-window - sharing the default
+# profile meant any other Firefox window you opened could get folded into
+# this same kiosk-mode process and lose its toolbar/go fullscreen too. A
+# separate profile makes this app's process (and its remoting) completely
+# independent from your regular Firefox, permanently. Costs one QR re-scan
+# the first time only; the profile stays logged in after that.
+exec hyprctl dispatch "hl.dsp.exec_cmd(\"setsid uwsm-app -- /opt/firefox-developer-edition/firefox --profile $HOME/.config/mozilla/firefox/whatsapp-app-profile --kiosk --new-window https://web.whatsapp.com\", { fullscreen_state = \"0 2\" })"

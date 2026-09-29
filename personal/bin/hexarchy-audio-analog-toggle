@@ -1,0 +1,57 @@
+#!/bin/bash
+# Switch the laptop's analog output between the Headphones and Speaker ACP
+# profiles. The two are mutually exclusive (one ALSA PCM, separate amp
+# switches), so switching means changing the card profile; the target sink is
+# then selected and running application streams are moved onto it.
+#
+# With an explicit target argument (<headphones|speaker>) the profile is made
+# to match it; without one, it toggles to the other profile. Idempotent either
+# way.
+
+card="alsa_card.pci-0000_00_1f.3-platform-skl_hda_dsp_generic"
+hp_profile="HiFi (HDMI1, HDMI2, HDMI3, Headphones, Mic1, Mic2)"
+spk_profile="HiFi (HDMI1, HDMI2, HDMI3, Mic1, Mic2, Speaker)"
+prefix="alsa_output.pci-0000_00_1f.3-platform-skl_hda_dsp_generic"
+hp_sink="$prefix.HiFi__Headphones__sink"
+spk_sink="$prefix.HiFi__Speaker__sink"
+
+active="$(pactl list cards 2>/dev/null | awk '
+	$1 == "Name:" && $2 == c { want = 1; next }
+	want && /Active Profile:/ { sub(/.*Active Profile: /, ""); print; exit }
+' c="$card")"
+
+want="${1:-}"
+case "$want" in
+	headphones) target_profile="$hp_profile"; target_sink="$hp_sink" ;;
+	speaker)    target_profile="$spk_profile"; target_sink="$spk_sink" ;;
+	*)
+		case "$active" in
+			*"Headphones"*) target_profile="$spk_profile"; target_sink="$spk_sink" ;;
+			*"Speaker"*)    target_profile="$hp_profile"; target_sink="$hp_sink" ;;
+			*) exit 0 ;;
+		esac
+		;;
+esac
+
+[ "$active" = "$target_profile" ] && exit 0
+
+pactl set-card-profile "$card" "$target_profile" 2>/dev/null || exit 0
+
+# Let the new sink exist before selecting it and moving streams over.
+sleep 0.8
+timeout 2 pactl set-default-sink "$target_sink" 2>/dev/null || true
+
+# Move only real application streams (same rule hexarchy-audio-output-set-default
+# uses: an EasyEffects input must stay put).
+timeout 2 pactl list sink-inputs 2>/dev/null | awk '
+	/^Sink Input #/ { id = substr($3, 2) }
+	/application\.name = / {
+		app = $0
+		sub(/.*application\.name = "/, "", app)
+		sub(/"$/, "", app)
+		if (app != "EasyEffects") print id
+	}' | while read -r input; do
+	[[ -n $input ]] && timeout 2 pactl move-sink-input "$input" "$target_sink" 2>/dev/null || true
+done
+
+exit 0

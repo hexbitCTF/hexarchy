@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "hexbit.audio",
+  "name": "My Audio",
+  "version": "1.0.0",
+  "author": "Hexarchy",
+  "description": "Volume slider, output picker, per-app mixer",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "My Audio",
+    "description": "Volume slider, output picker, per-app mixer",
+    "category": "Audio",
+    "allowMultiple": false
+  },
+  "hexarchy": {
+    "clonedFrom": "hexarchy.audio"
+  }
+}

@@ -1,0 +1,188 @@
+import QtQuick 2.15
+import SddmComponents 2.0
+import "Wordmark.js" as Wordmark
+
+// Hexarchy SDDM greeter, rebuilt to mirror the Hyprland lock screen
+// (/usr/share/hexarchy/shell/plugins/lock/LockView.qml) exactly: same
+// wordmark, same gradient + accent bloom, same bordered password field,
+// same inline error text. SDDM themes cannot import Hexarchy's qs.Commons
+// module, so the resolved theme colors below are baked in at
+// `hexarchy theme set` time (see ~/.config/hexarchy/hooks/theme-set.d/) by
+// reading colors.toml / shell.toml exactly as Color.qml would. Wordmark.js
+// is copied in verbatim alongside this file since it has no qs.* deps.
+Item {
+  id: root
+  width: screenModel.current ? screenModel.current.width : 1920
+  height: screenModel.current ? screenModel.current.height : 1080
+
+  // ---- Theme values, baked in at theme-set time ----
+  readonly property color background:   "__BACKGROUND__"
+  readonly property color accent:       "__ACCENT__"
+  readonly property color lockText:         "__LOCK_TEXT__"
+  readonly property color lockPlaceholder:  "__LOCK_PLACEHOLDER__"
+  readonly property color lockTextError:    "__LOCK_TEXT_ERROR__"
+  readonly property color lockBorderActive: "__LOCK_BORDER_ACTIVE__"
+  readonly property color lockBorderError:  "__LOCK_BORDER_ERROR__"
+  readonly property color lockSelection:    Qt.rgba(accent.r, accent.g, accent.b, 0.45)
+  readonly property color lockBackground:   Qt.rgba(background.r, background.g, background.b, 0.8)
+  readonly property int cornerRadius: __CORNER_RADIUS__
+  readonly property string fontFamily: "__FONT_FAMILY__"
+
+  readonly property string wordmark: Wordmark.wordmark
+  readonly property int wordmarkLines: Wordmark.wordmarkLines
+  readonly property int wordmarkColumns: Wordmark.wordmarkColumns
+  readonly property real wordmarkPixelSize: Math.min(
+    root.width * 0.94 / root.wordmarkColumns,
+    root.height * 0.22 / root.wordmarkLines,
+    Math.round(12 * 1.333) * 1.9
+  )
+
+  readonly property string placeholderText: "Password"
+  readonly property int fieldWidth: 340
+  readonly property int fieldHeight: 52
+
+  property string currentUser: userModel.lastUser
+  property bool loginFailed: false
+  readonly property int sessionIndex: sessionModel.lastIndex
+  readonly property bool errorState: root.loginFailed
+
+  Connections {
+    target: sddm
+    function onLoginFailed() {
+      root.loginFailed = true
+      passwordField.text = ""
+      passwordField.forceActiveFocus()
+    }
+    function onLoginSucceeded() {
+      root.loginFailed = false
+    }
+  }
+
+  Rectangle {
+    anchors.fill: parent
+
+    gradient: Gradient {
+      GradientStop { position: 0.0; color: Qt.darker(root.background, 1.15) }
+      GradientStop { position: 0.55; color: root.background }
+      GradientStop { position: 1.0; color: Qt.darker(root.background, 1.45) }
+    }
+
+    Rectangle {
+      anchors.top: parent.top
+      width: parent.width
+      height: parent.height * 0.42
+      gradient: Gradient {
+        GradientStop { position: 0.0; color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.18) }
+        GradientStop { position: 1.0; color: "transparent" }
+      }
+    }
+
+    MouseArea {
+      anchors.fill: parent
+      onClicked: passwordField.forceActiveFocus()
+    }
+
+    Column {
+      anchors.centerIn: parent
+      spacing: 10
+
+      Text {
+        id: wordmarkText
+        anchors.horizontalCenter: parent.horizontalCenter
+        text: root.wordmark
+        color: root.lockText
+        opacity: 0.85
+        font.family: root.fontFamily
+        font.pixelSize: root.wordmarkPixelSize
+        horizontalAlignment: Text.AlignHCenter
+        lineHeight: 1.0
+      }
+
+      Text {
+        id: userNameLabel
+        anchors.horizontalCenter: parent.horizontalCenter
+        text: root.currentUser
+        color: root.lockText
+        font.family: root.fontFamily
+        font.pixelSize: Math.round(Math.round(12 * 1.333) * 1.4)
+        font.bold: true
+        horizontalAlignment: Text.AlignHCenter
+      }
+
+      Rectangle {
+        id: inputField
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: root.fieldWidth
+        height: root.fieldHeight
+        color: root.lockBackground
+        radius: root.cornerRadius
+        border.width: 1
+        border.color: root.errorState ? root.lockBorderError : root.lockBorderActive
+        clip: true
+
+        Text {
+          id: placeholder
+          anchors.left: parent.left
+          anchors.leftMargin: 18
+          anchors.verticalCenter: parent.verticalCenter
+          visible: !root.errorState && passwordField.text.length === 0
+          text: root.placeholderText
+          color: root.lockPlaceholder
+          font.family: root.fontFamily
+          font.pixelSize: Math.round(12 * 1.333)
+        }
+
+        TextInput {
+          id: passwordField
+          anchors.fill: parent
+          anchors.leftMargin: 18
+          anchors.rightMargin: 18
+          verticalAlignment: TextInput.AlignVCenter
+          echoMode: TextInput.Password
+          passwordCharacter: "●"
+          color: root.lockText
+          selectionColor: root.lockSelection
+          selectedTextColor: root.lockText
+          font.family: root.fontFamily
+          font.pixelSize: Math.round(12 * 1.333)
+          focus: true
+          visible: !root.errorState
+
+          onTextChanged: root.loginFailed = false
+
+          Keys.onPressed: function(event) {
+            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+              sddm.login(root.currentUser, passwordField.text, root.sessionIndex)
+              event.accepted = true
+            }
+          }
+        }
+
+        // Status line: shown in place of the field once login fails, same as
+        // the lock screen's statusText overlay.
+        Text {
+          id: statusText
+          anchors.centerIn: parent
+          visible: root.errorState
+          text: "Incorrect password"
+          color: root.lockTextError
+          font.family: root.fontFamily
+          font.pixelSize: Math.round(12 * 1.333)
+          font.italic: true
+          horizontalAlignment: Text.AlignHCenter
+        }
+
+        MouseArea {
+          anchors.fill: parent
+          visible: root.errorState
+          onClicked: {
+            root.loginFailed = false
+            passwordField.forceActiveFocus()
+          }
+        }
+      }
+    }
+  }
+
+  Component.onCompleted: passwordField.forceActiveFocus()
+}

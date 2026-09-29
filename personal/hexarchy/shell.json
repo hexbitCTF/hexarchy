@@ -1,0 +1,92 @@
+{
+  "bar": {
+    "centerAnchor": "hexarchy.clock",
+    "layout": {
+      "center": [
+        {
+          "id": "hexarchy.indicators"
+        },
+        {
+          "id": "hexarchy.keyboard-layout"
+        },
+        {
+          "format": "dddd HH:mm",
+          "formatAlt": "d MMMM 'W'ww yyyy",
+          "id": "hexarchy.clock",
+          "verticalFormat": "HH\n—\nmm"
+        },
+        {
+          "id": "hexarchy.weather"
+        },
+        {
+          "id": "hexarchy.system-update"
+        },
+        {
+          "id": "dizziee.system-updates"
+        }
+      ],
+      "left": [
+        {
+          "id": "hexbit.menu"
+        },
+        {
+          "id": "hexarchy.workspaces"
+        },
+        {
+          "id": "crmne.hyprmoncfg"
+        }
+      ],
+      "right": [
+        {
+          "id": "hexarchy.tray"
+        },
+        {
+          "id": "hexarchy.tailscale"
+        },
+        {
+          "id": "hexarchy.agents"
+        },
+        {
+          "id": "hexarchy.bluetooth"
+        },
+        {
+          "id": "hexarchy.network"
+        },
+        {
+          "id": "hexbit.audio"
+        },
+        {
+          "id": "hexbit.monitor"
+        },
+        {
+          "id": "hexarchy.power"
+        }
+      ]
+    },
+    "position": "top",
+    "transparent": false
+  },
+  "cloneSourceRestores": [
+    "hexbit.menu",
+    "hexbit.idle",
+    "hexbit.image-picker"
+  ],
+  "disabledPlugins": [
+    "hexarchy.menu",
+    "hexarchy.idle",
+    "hexarchy.image-picker"
+  ],
+  "idle": {
+    "lock": 300,
+    "screensaver": 150
+  },
+  "plugins": [
+    {
+      "id": "hexbit.idle"
+    },
+    {
+      "id": "hexbit.image-picker"
+    }
+  ],
+  "version": 1
+}

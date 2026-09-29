@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Synced with the active Hexarchy theme: copies the generated superfile theme
+# into ~/.config/superfile/theme/ and points superfile's config at it so every
+# newly launched superfile uses the current system theme.
+
+# theme-set hook blocks (from hexarchy-theme-set). Keep it fast.
+set -euo pipefail
+
+CURRENT_THEME="$HOME/.local/state/hexarchy/current/theme"
+SUPERFILE_THEME_DIR="$HOME/.config/superfile/theme"
+SUPERFILE_CONFIG="$HOME/.config/superfile/config.toml"
+
+THEME_SLUG="${1:-$(cat "$HOME/.local/state/hexarchy/current/theme.name" 2>/dev/null || true)}"
+
+[[ -f "$CURRENT_THEME/superfile.toml" ]] || exit 0
+[[ -n $THEME_SLUG ]] || exit 0
+
+mkdir -p "$SUPERFILE_THEME_DIR"
+cp "$CURRENT_THEME/superfile.toml" "$SUPERFILE_THEME_DIR/$THEME_SLUG.toml"
+
+# Point superfile at the current theme, preserving any comments/quoting.
+if [[ -f $SUPERFILE_CONFIG ]]; then
+  sed -i -E "s/^([[:space:]]*)theme([[:space:]]*)=([[:space:]]*)\"[^\"]*\"/\1theme\2=\3\"$THEME_SLUG\"/" "$SUPERFILE_CONFIG"
+fi

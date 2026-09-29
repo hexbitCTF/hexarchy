@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# hexarchy:summary=Launch GParted as root via passwordless doas (keepenv preserves the Wayland/X11 session environment)
+exec doas /usr/bin/gparted "$@"

@@ -1,0 +1,56 @@
+#!/bin/bash
+# Switch which microphone feeds the noise-gated default input.
+# Usage: hexarchy-audio-input-toggle <laptop|headset>
+#   laptop  -> Mic1 (internal digital mic) feeds the gate
+#   headset -> Mic2 (headset mic) feeds the gate
+#
+# The choice is remembered until the next plug/unplug event (the analog watch
+# clears the lock), so a manual pick from the audio panel is never stomped
+# while it still makes sense.
+
+target="${1:-}"
+
+state="${XDG_STATE_HOME:-$HOME/.local/state}/hexarchy"
+mkdir -p "$state" 2>/dev/null || true
+lockfile="$state/audio-input-lock"
+micprefix="alsa_input.pci-0000_00_1f.3-platform-skl_hda_dsp_generic"
+mic1="$micprefix.HiFi__Mic1__source"
+mic2="$micprefix.HiFi__Mic2__source"
+gate_in="capture.noise_gate:playback_FL"
+
+mic2_avail() {
+	pactl list sources 2>/dev/null | awk -v n="$mic2" '
+		$0 == ("Name: " n) { in_node = 1 }
+		in_node && /Ports:/ { in_ports = 1 }
+		in_node && in_ports && /\[In\]/ {
+			print (index($0, "not available") ? 0 : 1)
+			exit
+		}
+		END { if (in_node != 1) exit 1 }
+	'
+}
+
+case "$target" in
+	laptop|hexbit.input.laptop)
+		raw="$mic1"
+		printf 'mic1\n' > "$lockfile"
+		;;
+	headset|hexbit.input.headset)
+		# A headset pick only makes sense while its mic is actually present.
+		if [ "$(mic2_avail)" != "1" ]; then
+			printf 'mic1\n' > "$lockfile"
+			raw="$mic1"
+		else
+			printf 'mic2\n' > "$lockfile"
+			raw="$mic2"
+		fi
+		;;
+	*) exit 0 ;;
+esac
+
+# Best-effort immediate re-link; the persistent mic noise-gate connect loop
+# converges within a poll cycle even if this fails.
+pw-link -d "$gate_in" 2>/dev/null || true
+pw-link "$raw:capture_FL" "$gate_in" 2>/dev/null || true
+
+exit 0

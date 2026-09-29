@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "hexbit.menu",
+  "name": "My Hexarchy menu",
+  "version": "1.0.0",
+  "author": "Hexarchy",
+  "description": "Quickshell-powered Hexarchy command menu",
+  "kinds": [
+    "menu",
+    "bar-widget"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "menu": "Menu.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "My Hexarchy menu",
+    "description": "Launches the Hexarchy menu",
+    "category": "Compositor",
+    "allowMultiple": false
+  },
+  "hexarchy": {
+    "clonedFrom": "hexarchy.menu"
+  }
+}

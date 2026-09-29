@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# Display annotated pixeltui keybindings using Hexarchy's interactive search
+# menu (same component the system/Neovim/tmux keybind cheatsheets use).
+# Usage: hexarchy-menu-pixeltui-keybindings [--print|-p]
+
+print_only=false
+
+while (($#)); do
+  case "$1" in
+    --print|-p)
+      print_only=true
+      ;;
+    *)
+      ;;
+  esac
+  shift
+done
+
+output_keybindings() {
+  cat <<'KEYS'
+One rule for track keys: lowercase acts on the HIGHLIGHTED track, SHIFT acts on what's PLAYING.
+────────── Playback (always the now-playing track) ──────────
+ENTER                → Play selected track
+SPACE                → Pause / resume (or play, if stopped)
+← / → · h / l        → Seek
+n                    → Next track
+;                    → Jump to the playing track
++ / −                → Volume up / down
+────────── Track (lower = highlighted · SHIFT = now-playing) ──────────
+f / F                → Like / unlike (♥)
+a / A                → Add to queue / play next (front)
+p / P                → Add to playlist
+d / D                → Download to your music folder
+x / X                → Mute artist this session (X also skips)
+.                    → Actions menu — like/queue/playlist/download + go to artist/album
+o / O                → Start an endless station (from selection / playing)
+────────── Pages ──────────
+!a <artist>          → Artist page: top songs · albums · singles (+ Last.fm stats)
+!al <album>          → Album page: ordered tracklist, year, durations
+ESC                  → Back through pages (artist → album → results)
+────────── Queue (Tab switches focus: Discover ⇄ Up Next) ──────────
+↑ / ↓                → Navigate
+j / k                → Reorder (Up Next focused)
+DEL                  → Remove
+s                    → Shuffle
+r                    → Repeat
+c                    → Clear
+u                    → Undo the last clear / remove / shuffle
+────────── Modes ──────────
+/                    → Search — the prompt shows the source; Tab switches it (YouTube · Subsonic · Local)
+'                    → Filter the current list in place (fuzzy)
+b                    → Browse: Liked · playlists · charts · stats · Local · Subsonic
+y                    → Lyrics — [ / ] nudge sync · 0 reset
+z                    → Autoplay
+t                    → Sleep timer
+,                    → Settings
+TAB                  → Switch pane
+?                    → All keys (pixeltui's own in-app help)
+q                    → Quit
+ESC                  → Back / close
+────────── Browse mode (press b, then) ──────────
+del                  → Delete
+p                    → Rename
+u                    → Restore
+o                    → Station from a playlist (blends up to 4 random seeds)
+KEYS
+}
+
+if [[ $print_only == "true" ]]; then
+  output_keybindings
+  exit 0
+fi
+
+records=$(output_keybindings)
+
+monitor_height=$(hyprctl monitors -j 2>/dev/null | jq -r '.[] | select(.focused == true) | .height' 2>/dev/null)
+
+if [[ ! $monitor_height =~ ^[0-9]+$ ]] || ((monitor_height <= 0)); then
+  monitor_height=900
+fi
+
+menu_height=$((monitor_height * 70 / 100))
+printf '%s\n' "$records" | hexarchy-menu-select 'pixeltui keybindings' -- --width 800 --height "$menu_height" >/dev/null || true

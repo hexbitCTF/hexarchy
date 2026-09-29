@@ -1,0 +1,109 @@
+#!/bin/bash
+
+# hexarchy:summary=Toggle the internal laptop display (hyprmoncfg-aware)
+# hexarchy:args=
+
+# Drive hyprmoncfg's own apply engine so the toggle stays consistent with its
+# profiles. The ON state ("internal") is rebuilt on every run from the user's
+# docked profile so a panel save that disabled the internal screen cannot break
+# the toggle. commit -> manual override pin, cleared on the next hotplug.
+
+set -uo pipefail
+
+PROFILE_DIR="$HOME/.config/hyprmoncfg/profiles"
+
+wake() {
+  hyprctl dispatch 'hl.dsp.dpms({ action = "enable" })' >/dev/null 2>&1 || true
+}
+
+err() {
+  hexarchy-notification-send --summary "Internal display" --body "Toggle failed: $1" >/dev/null 2>&1 || true
+  echo "laptop-display-toggle: $1" >&2
+}
+
+rebuild_internal() {
+  python3 - "$PROFILE_DIR" <<'PYEOF'
+import json, sys, datetime
+profiles = sys.argv[1]
+
+def load(name):
+    try:
+        return json.load(open(f"{profiles}/{name}.json"))
+    except Exception:
+        return None
+
+base = load("default")
+if base is None:
+    print("default profile missing; cannot build internal", file=sys.stderr)
+    sys.exit(1)
+
+boe = {
+    "key": "boe|0x08d5",
+    "match_key": "boe|0x08d5",
+    "name": "eDP-1",
+    "description": "BOE 0x08D5",
+    "make": "BOE",
+    "model": "0x08D5",
+    "enabled": True,
+    "mode": "1920x1080@60.00Hz",
+    "width": 1920,
+    "height": 1080,
+    "refresh": 60.001,
+    "x": 1920,
+    "y": 0,
+    "scale": 1.5,
+    "transform": 0,
+    "bitdepth": 8,
+    "cm": "srgb",
+    "sdr_brightness": 1,
+    "sdr_saturation": 1,
+    "sdr_min_luminance": 0.2,
+    "sdr_max_luminance": 80,
+    "min_luminance": 0,
+}
+
+d = dict(base)
+d["name"] = "internal"
+d["updated_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
+find = next((i for i, o in enumerate(d.get("outputs", [])) if o.get("name") == "eDP-1"), None)
+if find is None:
+    d.setdefault("outputs", []).append(boe)
+else:
+    merged = dict(d["outputs"][find]); merged.update({k: v for k, v in boe.items()})
+    d["outputs"][find] = merged
+
+json.dump(d, open(f"{profiles}/internal.json", "w"), indent=2)
+print("internal profile rebuilt with eDP enabled:", [o["enabled"] for o in d["outputs"] if o["name"] == "eDP-1"][0])
+PYEOF
+}
+
+wake
+
+monitors="$(hyprctl monitors -j 2>/dev/null || printf '[]')"
+eDP="$(printf '%s' "$monitors" | jq -e 'any(.name == "eDP-1")' 2>/dev/null || echo false)"
+externals="$(printf '%s' "$monitors" | jq -e '[.[] | select(.name != "eDP-1")] | length' 2>/dev/null || echo 0)"
+
+if [ "$eDP" = "true" ]; then
+  if [ "$externals" = "0" ]; then
+    err "only display - cannot disable internal without an external monitor"
+    exit 1
+  fi
+  profile="default"
+  verb="disabling"
+else
+  if ! rebuild_internal; then
+    err "could not rebuild internal profile"
+    exit 1
+  fi
+  profile="internal"
+  verb="enabling"
+fi
+
+if ! hyprmoncfg apply "$profile" --confirm-timeout 0 >/tmp/toggle-apply.log 2>&1; then
+  err "hyprmoncfg apply failed (see /tmp/toggle-apply.log)"
+  exit 1
+fi
+
+sleep 1
+wake
+echo "internal display: $verb (profile=$profile)"

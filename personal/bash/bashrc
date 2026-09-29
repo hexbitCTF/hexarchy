@@ -1,0 +1,42 @@
+# Hexarchy shell config chain
+[[ $- != *i* ]] && return
+
+source /usr/share/hexarchy/default/bash/env-bootstrap 2>/dev/null
+: "${HEXARCHY_PATH:=/usr/share/hexarchy}"
+source "$HEXARCHY_PATH/default/bash/rc"
+
+alias ll='ls -la'
+alias cls='/usr/bin/clear'
+unalias r 2>/dev/null
+
+# Package management functions with AUR fallback
+i() {
+  if pacman -Ss "^$1$" &>/dev/null; then
+    sudo pacman -S --needed "$@"
+  else
+    yay -S --needed "$@"
+  fi
+}
+
+u() {
+  sudo pacman -Syu
+}
+
+q() {
+  local result
+  result=$(pacman -Ss "^$1$" 2>/dev/null)
+  if [ -n "$result" ]; then
+    echo "$result"
+  else
+    yay -Ss "$1"
+  fi
+}
+
+r() {
+  sudo pacman -Rns "$@"
+}
+
+# Vim editing mode for bash (Luke Smith style)
+set -o vi
+
+
