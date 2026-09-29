@@ -33,18 +33,30 @@ fi
 # independent from your regular Firefox, permanently. Costs one QR re-scan
 # the first time only; the profile stays logged in after that.
 #
-# The Firefox binary is resolved rather than hardcoded: a tarball install
-# lives at /opt/firefox-developer-edition/firefox, while other layouts put
-# firefox-dev on PATH. Prefer the tarball path when it exists, else fall back
-# to whatever `firefox-dev` resolves to.
-firefox_bin="/opt/firefox-developer-edition/firefox"
-if [[ ! -x $firefox_bin ]]; then
+# The Firefox binary is resolved rather than hardcoded, because the layouts
+# differ between machines: a tarball install is /opt/firefox-developer-edition/firefox,
+# while other installs register /opt/firefox-dev/firefox-bin via their .desktop
+# Exec line. Try those in the same order the desktop entries do, then fall back
+# to whatever firefox-dev is on PATH.
+firefox_bin=""
+for candidate in \
+  /opt/firefox-developer-edition/firefox \
+  /opt/firefox-dev/firefox-bin \
+  /opt/firefox-dev/firefox; do
+  if [[ -x $candidate ]]; then
+    firefox_bin="$candidate"
+    break
+  fi
+done
+
+if [[ -z $firefox_bin ]]; then
   firefox_bin="$(command -v firefox-dev || true)"
 fi
 
 if [[ -z $firefox_bin || ! -x $firefox_bin ]]; then
-  echo "Firefox Developer Edition not found (looked for /opt/firefox-developer-edition/firefox and firefox-dev on PATH)." >&2
+  echo "Firefox Developer Edition not found (looked for /opt/firefox-developer-edition/firefox, /opt/firefox-dev/firefox-bin, and firefox-dev on PATH)." >&2
   exit 1
 fi
 
+echo "whatsapp-webapp-launch: using $firefox_bin" >&2
 exec hyprctl dispatch "hl.dsp.exec_cmd(\"setsid uwsm-app -- $firefox_bin --profile $HOME/.config/mozilla/firefox/whatsapp-app-profile --kiosk --new-window https://web.whatsapp.com\", { fullscreen_state = \"0 2\" })"

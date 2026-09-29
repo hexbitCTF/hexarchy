@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# hexarchy:summary=Launch the default browser as determined by xdg-settings.
+# hexarchy:args=[url]
+
+# User-level override of the packaged hexarchy-launch-browser.
+# The stock version looks up the .desktop file with an unquoted brace expansion:
+#   sed ... {~/.local,~/.nix-profile,/usr}/share/applications/$default_browser
+# When the default browser's desktop file contains spaces in its name (Firefox
+# writes "userapp-Firefox Developer Edition-XXXX.desktop" when set as default),
+# the unquoted path word-splits and the resolved executable comes back empty, so
+# the keybind silently does nothing. This version quotes the search paths.
+
+default_browser=$(env -u BROWSER xdg-settings get default-web-browser)
+if [[ -z $default_browser ]]; then
+  default_browser=$(xdg-mime query default x-scheme-handler/https)
+fi
+
+browser_exec=""
+for dir in \
+  "${XDG_DATA_HOME:-$HOME/.local/share}/applications" \
+  "$HOME/.nix-profile/share/applications" \
+  /usr/share/applications /usr/local/share/applications; do
+  if [[ -f "$dir/$default_browser" ]]; then
+    browser_exec=$(sed -n 's/^Exec=\([^ ]*\).*/\1/p' "$dir/$default_browser" | head -1)
+    break
+  fi
+done
+
+if [[ -n $browser_exec ]]; then
+  if $browser_exec --help 2>/dev/null | grep -q MOZ_LOG; then
+    private_flag="--private-window"
+  elif [[ $browser_exec =~ edge ]]; then
+    private_flag="--inprivate"
+  else
+    private_flag="--incognito"
+  fi
+else
+  echo "hexarchy-launch-browser: could not resolve default browser '$default_browser'" >&2
+  exit 1
+fi
+
+nohup uwsm-app -- "$browser_exec" "${@/--private/$private_flag}" >/dev/null 2>&1 &
+
+url=""
+for argument in "$@"; do
+  if [[ $argument != "--private" ]]; then
+    url=$argument
+    break
+  fi
+done
+
+if [[ -n $url && -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then
+  hexarchy-hyprland-focus-app "^$(basename "$browser_exec" -stable).*$" || true
+fi
