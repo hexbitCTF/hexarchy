@@ -100,6 +100,9 @@ mkdir -p "$profile_dir" || {
 }
 
 # Register it so Firefox and the theme hooks can see it. Idempotent.
+# Deliberately no Default=1 here: the machine's real profile already claims
+# default, and two profiles both marked default makes Firefox resolve which one
+# a plain launch uses unpredictably. This one is reachable by --profile only.
 if ! grep -q "^Path=$profile_name$" "$PROFILE_BASE/profiles.ini" 2>/dev/null; then
   {
     echo ""
@@ -107,7 +110,6 @@ if ! grep -q "^Path=$profile_name$" "$PROFILE_BASE/profiles.ini" 2>/dev/null; th
     echo "Name=whatsapp-app"
     echo "IsRelative=1"
     echo "Path=$profile_name"
-    echo "Default=1"
   } >>"$PROFILE_BASE/profiles.ini"
   echo "whatsapp-webapp-launch: registered profile $profile_name in $PROFILE_BASE/profiles.ini" >&2
 fi
