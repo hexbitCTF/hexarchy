@@ -22,7 +22,14 @@ run_shell() {
   # starts before elogind creates this directory.
   mkdir -p "${XDG_RUNTIME_DIR:-/run/user/$UID}"
 
-  QS_DISABLE_FILE_WATCHER=1 QS_NO_RELOAD_POPUP=1 \
+  # QS_DISABLE_CRASH_HANDLER also turns off Quickshell's relaunch system.
+  # Left on, a shell that dies while the session is tearing down is restarted
+  # by Quickshell itself, after elogind has already removed the runtime
+  # directory. That relaunch cannot create $XDG_RUNTIME_DIR/quickshell and
+  # segfaults in its own path setup, before this script can supervise it.
+  # This loop is the supervisor instead, and it never starts a shell without
+  # the runtime directory above already in place.
+  QS_DISABLE_CRASH_HANDLER=1 QS_DISABLE_FILE_WATCHER=1 QS_NO_RELOAD_POPUP=1 \
     quickshell -n -p "$HEXARCHY_PATH/shell" \
     >>"$shell_log" 2>&1 &
   shell_pid=$!

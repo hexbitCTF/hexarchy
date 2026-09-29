@@ -28,8 +28,9 @@ cat >"$fake_bin/quickshell" <<'SH'
 #!/bin/bash
 
 printf '%s\n' "$*" >>"$HEXARCHY_TEST_QS_LOG"
-printf 'watcher=%s popup=%s\n' \
-  "${QS_DISABLE_FILE_WATCHER:-unset}" "${QS_NO_RELOAD_POPUP:-unset}" >>"$HEXARCHY_TEST_QS_ENV_LOG"
+printf 'watcher=%s popup=%s handler=%s\n' \
+  "${QS_DISABLE_FILE_WATCHER:-unset}" "${QS_NO_RELOAD_POPUP:-unset}" \
+  "${QS_DISABLE_CRASH_HANDLER:-unset}" >>"$HEXARCHY_TEST_QS_ENV_LOG"
 
 launches=$(wc -l <"$HEXARCHY_TEST_QS_LOG")
 status=$(awk -v n="$launches" 'NR == n { print; found = 1 } END { if (!found) print "0" }' <<<"$HEXARCHY_TEST_QS_STATUSES")
@@ -113,9 +114,11 @@ pass "a shell that exits cleanly is left alone"
 
 # A misspelled variable would leave Quickshell hot-reloading the tree pacman
 # rewrites underneath it, which is what crashes the restart that follows.
-[[ $(<"$qs_env_log") == "watcher=1 popup=1" ]] ||
+# The crash handler also relaunches, and a relaunch during logout starts a
+# shell with no runtime directory, which segfaults before this loop sees it.
+[[ $(<"$qs_env_log") == "watcher=1 popup=1 handler=1" ]] ||
   fail "the shell launches with Quickshell's own reloading off" "$(<"$qs_env_log")"
-pass "the shell launches with Quickshell's config watcher and reload popup off"
+pass "the shell launches with Quickshell's reloading and relaunch off"
 
 # Qt leaves through _exit(), so Quickshell's crash handler never relaunches it.
 launch_shell $'255\n0' || fail "a shell that died on a Wayland error is relaunched"
