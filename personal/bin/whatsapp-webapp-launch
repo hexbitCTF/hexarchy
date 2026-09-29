@@ -34,15 +34,22 @@ fi
 # the first time only; the profile stays logged in after that.
 #
 # The Firefox binary is resolved rather than hardcoded, because the layouts
-# differ between machines: a tarball install is /opt/firefox-developer-edition/firefox,
-# while other installs register /opt/firefox-dev/firefox-bin via their .desktop
-# Exec line. Try those in the same order the desktop entries do, then fall back
-# to whatever firefox-dev is on PATH.
+# differ between machines. Order matters: prefer the `firefox` wrapper over
+# `firefox-bin` in every install directory. The wrapper handles first-run
+# profile creation and then execs the real binary, whereas firefox-bin only
+# attaches to a profile that already exists and exits with
+# "Could not find profile folder" otherwise. This launcher is the first thing
+# to touch the dedicated WhatsApp profile, so it has to be the wrapper.
+#
+# A note on false success: this dispatches through `hyprctl dispatch`, which
+# prints "ok" and exits 0 as soon as it accepts the request. That says nothing
+# about whether the process it spawned survived, so exit 0 here is not evidence
+# that a window opened.
 firefox_bin=""
 for candidate in \
   /opt/firefox-developer-edition/firefox \
-  /opt/firefox-dev/firefox-bin \
-  /opt/firefox-dev/firefox; do
+  /opt/firefox-dev/firefox \
+  /opt/firefox-dev/firefox-bin; do
   if [[ -x $candidate ]]; then
     firefox_bin="$candidate"
     break
@@ -54,7 +61,7 @@ if [[ -z $firefox_bin ]]; then
 fi
 
 if [[ -z $firefox_bin || ! -x $firefox_bin ]]; then
-  echo "Firefox Developer Edition not found (looked for /opt/firefox-developer-edition/firefox, /opt/firefox-dev/firefox-bin, and firefox-dev on PATH)." >&2
+  echo "Firefox Developer Edition not found (looked for /opt/firefox-developer-edition/firefox, /opt/firefox-dev/firefox, and firefox-dev on PATH)." >&2
   exit 1
 fi
 
