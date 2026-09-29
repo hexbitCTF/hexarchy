@@ -191,5 +191,6 @@ zoxide_support = true
    avif = "feh"
    ico = "feh"
    heic = "feh"
-#   pdf = "zathura"
+   pdf = "zathura"
+   epub = "zathura"
 #   conf = "nvim"

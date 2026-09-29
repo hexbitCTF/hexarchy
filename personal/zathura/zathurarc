@@ -1,0 +1,25 @@
+# zathura configuration.
+#
+# Zathura is vim-keybindings by default, so this only sets the few things worth
+# changing.
+#
+# Two things about this build (zathura 2026.07.18), both learned the hard way:
+# the options are flat ("set name value", not the older "set ui (name value)"
+# form, which warns "Too many arguments for :set" on every line), and only
+# options that exist are accepted, so a plausible-sounding name like
+# `default-document-dir` or `scalefactor` warns "Unknown option".
+
+# Title bar: include the page number, and expand ~ so a long path does not push
+# the useful part of the name off screen.
+set window-title-page true
+set window-title-home-tilde true
+set window-title-basename false
+
+# Status bar: page numbers as a percentage reads better than n/total when
+# paging through a long document.
+set statusbar-page-percent true
+set statusbar-basename true
+set statusbar-home-tilde true
+
+# Cache rendered pages so scrolling back is instant.
+set page-cache-size 20

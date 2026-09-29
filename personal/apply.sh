@@ -97,6 +97,8 @@ install_file "$PERSONAL_DIR/bash/bashrc" "$HOME/.bashrc"
 install_file "$PERSONAL_DIR/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
 install_file "$PERSONAL_DIR/superfile/config.toml" "$HOME/.config/superfile/config.toml"
 install_file "$PERSONAL_DIR/superfile/hotkeys.toml" "$HOME/.config/superfile/hotkeys.toml"
+install_file "$PERSONAL_DIR/feh/keys" "$HOME/.config/feh/keys"
+install_file "$PERSONAL_DIR/zathura/zathurarc" "$HOME/.config/zathura/zathurarc"
 install_file "$PERSONAL_DIR/starship.toml" "$HOME/.config/starship.toml"
 install_file "$PERSONAL_DIR/pipewire/mic-noise-gate.conf" "$HOME/.config/pipewire/mic-noise-gate.conf"
 

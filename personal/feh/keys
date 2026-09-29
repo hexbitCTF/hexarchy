@@ -1,0 +1,45 @@
+# feh key bindings, vim style.
+#
+# Format is "action key [key ...]" -- the action comes FIRST. An action given
+# with no keys unbinds it entirely. See `man feh`, section KEYS CONFIG SYNTAX.
+#
+# Keys are X11 keysym names as shown by `xev`. A modifier prefix looks like
+# mod-keysym, e.g. C-u for Ctrl+u. For an uppercase letter the Shift modifier is
+# not required, so G is just G.
+
+# --- unbind first ---------------------------------------------------------
+# feh does not detect conflicting bindings, and these three defaults sit on
+# keys the vim set wants: h was toggle_pause, k was toggle_keep_vp, and
+# g was toggle_fixed_geometry.
+toggle_pause
+toggle_keep_vp
+toggle_fixed_geometry
+
+# --- hjkl walk the filelist, as in vim ------------------------------------
+prev_img h k
+next_img j l
+
+# Already the defaults; restated so this file is the whole picture.
+prev_img p BackSpace Left
+next_img n space Right
+
+# --- jump to either end ---------------------------------------------------
+jump_first g Home
+jump_last G End
+
+# --- zoom, following vim's +/- and 0 --------------------------------------
+zoom_in plus equal Up
+zoom_out minus Down
+zoom_default 0 asterisk
+zoom_fit slash
+
+# --- keep the rest of the defaults explicit -------------------------------
+quit q Escape
+toggle_fullscreen f
+save_image s
+reload_image r
+jump_random z
+
+# --- half-page scrolling, vim's Ctrl-U / Ctrl-D ---------------------------
+scroll_up_page C-u
+scroll_down_page C-d
